@@ -21,9 +21,9 @@
 
 @media (width >= 900px) {
   .columns > div {
-    align-items: center;
     flex-direction: unset;
-    gap: 24px;
+    align-items: center;
+    gap: var(--space-m);
   }
 
   .columns > div > div {
