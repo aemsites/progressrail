@@ -5,33 +5,33 @@
 
 .hero {
   position: relative;
-  padding: 40px 24px;
   min-height: 300px;
+  padding: var(--space-l) var(--space-m);
 }
 
 .hero h1 {
-  max-width: 1200px;
+  max-width: var(--site-width);
   margin-left: auto;
   margin-right: auto;
-  color: var(--background-color);
+  color: var(--color-bg);
 }
 
 .hero picture {
   position: absolute;
-  z-index: -1;
   inset: 0;
-  object-fit: cover;
+  z-index: -1;
   box-sizing: border-box;
+  object-fit: cover;
 }
 
 .hero img {
-  object-fit: cover;
-  width: 100%;
   height: 100%;
+  width: 100%;
+  object-fit: cover;
 }
 
 @media (width >= 900px) {
   .hero {
-    padding: 40px 32px;
+    padding: var(--space-l) var(--space-l);
   }
 }
