@@ -1,272 +1,243 @@
-/* header and nav layout */
-header .nav-wrapper {
-  position: fixed;
-  z-index: 2;
-  width: 100%;
+body > header {
+  border-bottom: 1px solid var(--color-border);
   background-color: var(--color-bg);
+  background-image: linear-gradient(var(--color-bg) 83px, var(--color-gray-200) 83px);
 }
 
-header nav {
+@media (width >= 1200px) {
+  body > header {
+    background-image: linear-gradient(var(--color-gray-200) 56px, var(--color-bg) 56px);
+  }
+}
+
+header .header {
   display: grid;
   grid-template:
-    'hamburger brand tools' var(--nav-height)
-    'sections sections sections' 1fr / auto 1fr auto;
+    'hamburger logo .' 68px
+    'search search search' auto
+    'nav nav nav' auto
+    'language language language' auto
+    / 44px 1fr 44px;
   align-items: center;
-  gap: 0 var(--space-m);
-  box-sizing: border-box;
-  height: var(--nav-height);
-  max-width: 1248px;
-  margin: auto;
-  padding: 0 var(--space-m);
-  font-family: var(--body-font-family);
+  gap: calc(2 * var(--space-xs)) 0;
+  max-width: var(--site-width);
+  margin: 0 auto;
+  padding: var(--space-xs);
+  font-size: var(--text-s);
 }
 
-header nav[aria-expanded='true'] {
-  grid-template:
-    'hamburger brand' var(--nav-height)
-    'sections sections' 1fr
-    'tools tools' var(--nav-height) / auto 1fr;
-  overflow-y: auto;
-  min-height: 100dvh;
+@media (width >= 600px) {
+  header .header {
+    padding: var(--space-xs) var(--space-s);
+  }
 }
 
 @media (width >= 900px) {
-  header .nav-wrapper {
-    position: relative;
-  }
-
-  header nav {
-    display: flex;
-    justify-content: space-between;
-    gap: 0 var(--space-l);
-    max-width: 1264px;
-    padding: 0 var(--space-l);
-  }
-
-  header nav[aria-expanded='true'] {
-    overflow: visible;
-    min-height: 0;
+  header .header {
+    padding: var(--space-xs) var(--space-m);
   }
 }
 
-header nav p {
+@media (width >= 1200px) {
+  header .header {
+    grid-template:
+      'logo search search' auto
+      'nav nav language' auto / auto auto auto;
+    gap: calc(2 * var(--space-s)) var(--space-m);
+    padding: var(--space-s) var(--space-m);
+  }
+}
+
+header .header p {
   margin: 0;
-  line-height: 1;
 }
 
-header nav a:any-link {
-  color: currentcolor;
-}
-
-/* hamburger */
-header nav .nav-hamburger {
-  display: flex;
-  grid-area: hamburger;
-  align-items: center;
-  height: 22px;
-}
-
-header nav .nav-hamburger button {
-  overflow: initial;
-  height: 22px;
-  margin: 0;
-  border: 0;
-  border-radius: 0;
-  padding: 0;
-  background-color: var(--color-bg);
+header .header a {
   color: inherit;
-  text-overflow: initial;
-  white-space: initial;
 }
 
-header nav .nav-hamburger-icon,
-header nav .nav-hamburger-icon::before,
-header nav .nav-hamburger-icon::after {
-  display: block;
-  position: relative;
-  box-sizing: border-box;
-  width: 20px;
-}
-
-header nav .nav-hamburger-icon::before,
-header nav .nav-hamburger-icon::after {
-  content: '';
-  position: absolute;
-  background: currentcolor;
-}
-
-header nav[aria-expanded='false'] .nav-hamburger-icon,
-header nav[aria-expanded='false'] .nav-hamburger-icon::before,
-header nav[aria-expanded='false'] .nav-hamburger-icon::after {
-  height: 2px;
-  border-radius: 2px;
-  background: currentcolor;
-}
-
-header nav[aria-expanded='false'] .nav-hamburger-icon::before {
-  top: -6px;
-}
-
-header nav[aria-expanded='false'] .nav-hamburger-icon::after {
-  top: 6px;
-}
-
-header nav[aria-expanded='true'] .nav-hamburger-icon {
-  height: 22px;
-}
-
-header nav[aria-expanded='true'] .nav-hamburger-icon::before,
-header nav[aria-expanded='true'] .nav-hamburger-icon::after {
-  top: 3px;
-  left: 1px;
-  height: 2px;
-  width: 24px;
-  border-radius: 2px;
-  transform: rotate(45deg);
-  transform-origin: 2px 1px;
-}
-
-header nav[aria-expanded='true'] .nav-hamburger-icon::after {
-  top: unset;
-  bottom: 3px;
-  transform: rotate(-45deg);
-}
-
-@media (width >= 900px) {
-  header nav .nav-hamburger {
-    display: none;
-    visibility: hidden;
-  }
-}
-
-/* brand */
-header .nav-brand {
-  flex-basis: 128px;
-  grid-area: brand;
-  font-size: var(--heading-s);
-  font-weight: 700;
-  line-height: 1;
-}
-
-header nav .nav-brand img {
-  height: auto;
-  width: 128px;
-}
-
-/* sections */
-header nav .nav-sections {
-  display: none;
-  flex: 1 1 auto;
-  grid-area: sections;
-  visibility: hidden;
-}
-
-header nav[aria-expanded='true'] .nav-sections {
-  display: block;
-  align-self: start;
-  visibility: visible;
-}
-
-header nav .nav-sections ul {
+header .header ul {
   list-style: none;
-  padding-left: 0;
-  font-size: var(--text-m);
+  margin: 0;
+  padding: 0;
 }
 
-header nav .nav-sections ul > li {
-  font-weight: 400;
+/* header logo */
+header .header-logo {
+  grid-area: logo;
+  justify-self: center;
 }
 
-header nav .nav-sections ul > li > ul {
-  margin-top: 0;
+header .header-logo img,
+header .header-logo svg {
+  max-height: 68px;
+  width: auto;
 }
 
-header nav .nav-sections ul > li > ul > li {
-  font-weight: 400;
-}
-
-@media (width >= 900px) {
-  header nav .nav-sections {
-    display: block;
-    visibility: visible;
-    white-space: nowrap;
-  }
-
-  header nav[aria-expanded='true'] .nav-sections {
-    align-self: unset;
-  }
-
-  header nav .nav-sections .nav-drop {
-    position: relative;
-    padding-right: var(--space-s);
-    cursor: pointer;
-  }
-
-  header nav .nav-sections .nav-drop::after {
-    content: '';
-    display: inline-block;
-    position: absolute;
-    top: 0.5em;
-    right: 2px;
-    height: 6px;
-    width: 6px;
-    border: 2px solid currentcolor;
-    border-radius: 0 1px 0 0;
-    border-width: 2px 2px 0 0;
-    transform: rotate(135deg);
-  }
-
-  header nav .nav-sections .nav-drop[aria-expanded='true']::after {
-    top: unset;
-    bottom: 0.5em;
-    transform: rotate(315deg);
-  }
-
-  header nav .nav-sections ul {
-    display: flex;
-    gap: var(--space-m);
-    margin: 0;
-  }
-
-  header nav .nav-sections .default-content-wrapper > ul > li {
-    flex: 0 1 auto;
-    position: relative;
-  }
-
-  header nav .nav-sections .default-content-wrapper > ul > li > ul {
-    display: none;
-    position: relative;
-  }
-
-  header nav .nav-sections .default-content-wrapper > ul > li[aria-expanded='true'] > ul {
-    display: block;
-    position: absolute;
-    top: 150%;
-    left: -24px;
-    width: 200px;
-    padding: var(--space-s);
-    background-color: var(--color-bg-light);
-    white-space: initial;
-  }
-
-  header nav .nav-sections .default-content-wrapper > ul > li > ul::before {
-    content: '';
-    position: absolute;
-    top: -8px;
-    left: 16px;
-    height: 0;
-    width: 0;
-    border-left: 8px solid transparent;
-    border-bottom: 8px solid var(--color-bg-light);
-    border-right: 8px solid transparent;
-  }
-
-  header nav .nav-sections .default-content-wrapper > ul > li > ul > li {
+@media (width >= 1200px) {
+  header .header-logo {
     padding: var(--space-xs) 0;
   }
+
+  header .header-logo img,
+  header .header-logo svg {
+    max-height: 40px;
+  }
 }
 
-/* tools */
-header nav .nav-tools {
-  grid-area: tools;
+/* header nav */
+header .header-nav {
+  display: none;
+  grid-area: nav;
+}
+
+header .header-nav > ul {
+  display: flex;
+  align-items: center;
+  gap: var(--space-m);
+}
+
+header .header-nav > ul > li {
+  position: relative;
+}
+
+header .header-nav button {
+  display: flex;
+  align-items: center;
+  gap: 0.5ch;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+header .header-nav button,
+header .header-nav > ul > li a {
+  padding: 1em 0;
+}
+
+header .header-nav button[aria-expanded='true'],
+header .header-nav button:hover,
+header .header-nav button:focus-visible {
+  text-decoration: underline;
+}
+
+header .header-nav li > ul {
+  display: none;
+}
+
+header .header-nav button[aria-expanded='true'] + ul {
+  display: block;
+  position: absolute;
+  top: 100%;
+  left: calc(-1 * var(--space-s));
+  width: max-content;
+  min-width: 100%;
+  padding: var(--space-s);
+  box-shadow: var(--shadow-s);
+  background-color: var(--color-bg-subtle);
+}
+
+header .header-nav button[aria-expanded='true'] .icon img,
+header .header-nav button[aria-expanded='true'] .icon svg {
+  transform: rotate(-180deg);
+}
+
+header .header-nav li > ul li + li {
+  margin-top: var(--space-s);
+}
+
+@media (width >= 1200px) {
+  header .header-nav {
+    display: block;
+  }
+}
+
+/* header language */
+header .header-language {
+  display: none;
+  grid-area: language;
+  position: relative;
+}
+
+@media (width >= 1200px) {
+  header .header-language {
+    display: block;
+  }
+}
+
+/* header search */
+header .header-search {
+  grid-area: search;
+  position: relative;
+}
+
+/* header hamburger */
+header .header-hamburger {
+  grid-area: hamburger;
+}
+
+/* stylelint-disable-next-line no-descending-specificity */
+header .header-hamburger button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  width: 44px;
+  border: none;
+  padding: 0;
+  background: none;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+header .header-hamburger button:hover,
+header .header-hamburger button:focus-visible {
+  transform: scale(1.2);
+}
+
+header .header-hamburger .icon-hamburger,
+header .header-hamburger .icon-hamburger::before,
+header .header-hamburger .icon-hamburger::after {
+  display: block;
+  height: 2px;
+  width: 24px;
+  background-color: currentcolor;
+  transition: transform 0.2s, background-color 0.2s;
+}
+
+header .header-hamburger .icon-hamburger {
+  position: relative;
+}
+
+header .header-hamburger .icon-hamburger::before,
+header .header-hamburger .icon-hamburger::after {
+  content: '';
+  position: absolute;
+  left: 0;
+}
+
+header .header-hamburger .icon-hamburger::before {
+  top: -8px;
+}
+
+header .header-hamburger .icon-hamburger::after {
+  top: 8px;
+}
+
+header .header-hamburger button[aria-expanded='true'] .icon-hamburger {
+  background-color: transparent;
+}
+
+header .header-hamburger button[aria-expanded='true'] .icon-hamburger::before {
+  transform: translateY(8px) rotate(45deg);
+}
+
+header .header-hamburger button[aria-expanded='true'] .icon-hamburger::after {
+  transform: translateY(-8px) rotate(-45deg);
+}
+
+@media (width >= 1200px) {
+  header .header-hamburger {
+    display: none;
+  }
 }
