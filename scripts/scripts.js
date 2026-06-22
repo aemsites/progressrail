@@ -104,7 +104,7 @@ function decorateButtons(main) {
     p.className = 'button-wrapper';
     a.className = 'button';
     if (strong && em) { // high-impact call-to-action
-      a.classList.add('accent');
+      a.classList.add('cta');
       const outer = strong.contains(em) ? strong : em;
       outer.replaceWith(a);
     } else if (strong) {
@@ -115,6 +115,15 @@ function decorateButtons(main) {
       em.replaceWith(a);
     }
   });
+
+  // collapse adjacent button wrappers
+  let adjacent = main.querySelector('p.button-wrapper + p.button-wrapper');
+  while (adjacent) {
+    const prev = adjacent.previousElementSibling;
+    adjacent.querySelectorAll('a.button').forEach((btn) => prev.appendChild(btn));
+    adjacent.remove();
+    adjacent = main.querySelector('p.button-wrapper + p.button-wrapper');
+  }
 }
 
 /**
