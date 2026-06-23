@@ -1,0 +1,112 @@
+.search.suggestions {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 2;
+  max-height: calc(100dvh - var(--nav-height));
+  overflow: hidden auto;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  box-shadow: var(--shadow-s);
+}
+
+.search.suggestions[hidden] {
+  display: none;
+}
+
+.search.suggestions .results {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.search.suggestions .result {
+  display: flex;
+  gap: 0.75em;
+  align-items: start;
+  position: relative;
+  padding: 0.75em 1em;
+  transition: background-color 0.2s;
+}
+
+.search.suggestions .result + .result {
+  border-top: 1px solid var(--color-border);
+}
+
+.search.suggestions .result:hover,
+.search.suggestions .result:focus-within {
+  background-color: var(--color-bg-light);
+}
+
+.search.suggestions .media-wrapper {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  overflow: hidden;
+  border-radius: var(--radius-s);
+}
+
+.search.suggestions .media-wrapper picture,
+.search.suggestions .media-wrapper picture > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.search.suggestions .body-wrapper {
+  min-width: 0;
+  line-height: 1.3;
+}
+
+.search.suggestions .title {
+  margin: 0 0 0.2em;
+  font-weight: 600;
+}
+
+.search.suggestions .title .link {
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.search.suggestions .title .link:hover,
+.search.suggestions .title .link:focus-visible {
+  color: var(--color-text);
+  text-decoration: underline;
+}
+
+.search.suggestions .link::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+.search.suggestions .meta {
+  overflow: hidden;
+  margin: 0;
+  color: var(--color-muted);
+  font-size: var(--text-s);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.search.suggestions footer a {
+  display: block;
+  border-radius: 0;
+  padding: 0.75em 1em;
+  text-align: center;
+}
+
+/* highlight */
+.search.suggestions .results mark {
+  outline: 1px solid var(--color-brand);
+  background-color: var(--color-brand);
+}
+
+.search.suggestions .no-results {
+  padding: 1em;
+  text-align: center;
+}

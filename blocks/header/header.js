@@ -176,6 +176,27 @@ function decorateNav(section) {
 }
 
 /**
+ * Resolve the locale prefix from the current URL path.
+ * @returns {string} Locale path segment (e.g. en, fr)
+ */
+function getLocaleFromPath() {
+  const segment = window.location.pathname.split('/').filter(Boolean)[0];
+  if (segment && /^[a-z]{2}(-[a-z]{2})?$/i.test(segment)) {
+    return segment.split('-')[0].toLowerCase();
+  }
+  return 'en';
+}
+
+/**
+ * Whether the page includes a search results widget.
+ * @returns {boolean}
+ */
+function pageHasSearchWidget() {
+  return !!window.hlx?.searchWidgetOnPage
+    || !!document.querySelector('.widget.search, .search.widget, .widget a[href*="/widgets/search/"]');
+}
+
+/**
  * Builds a search form with an input and submit button inside the section.
  * @param {Element} section - The search section element
  */
@@ -205,14 +226,35 @@ function decorateSearch(section) {
   section.textContent = '';
   section.append(form);
 
+  const locale = getLocaleFromPath();
+  const searchResultsPath = `/${locale}/search`;
+
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('search')) {
+    input.value = params.get('search');
+  }
+
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     const query = input.value.trim();
-    if (query) {
-      const q = encodeURIComponent(query);
-      const path = encodeURIComponent(window.location.pathname);
-      window.location.href = `/en/search/search-results.html?search=${q}&pagePath=${path}`;
+    if (!query) return;
+    if (pageHasSearchWidget()) {
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      return;
     }
+    window.location.href = `${searchResultsPath}?search=${encodeURIComponent(query)}`;
+  });
+
+  document.dispatchEvent(new CustomEvent('header-search-ready', { detail: { input } }));
+  window.hlx = window.hlx || {};
+  window.hlx.headerSearch = input;
+
+  const searchModulePath = `${window.hlx?.codeBasePath || ''}/widgets/search/search.js`;
+  import(searchModulePath).then((mod) => {
+    mod.initHeaderSearch(input, {
+      anchor: section,
+      resultsPath: searchResultsPath,
+    });
   });
 }
 

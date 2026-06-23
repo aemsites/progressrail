@@ -1,0 +1,15 @@
+{
+  "en": {
+    "search": "Search",
+    "searchFormLabel": "Search",
+    "resultsFor": "Results For",
+    "previous": "Previous",
+    "next": "Next",
+    "paginationLabel": "Pagination",
+    "viewAllResults": "View all results",
+    "noResults": "No results found",
+    "noResultsTitle": "No results found",
+    "noResultsText": "Try different keywords or check your spelling.",
+    "emptyStateIntro": "Use the search box in the header to find content across the site. Results appear here as you type."
+  }
+}
