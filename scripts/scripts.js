@@ -127,6 +127,19 @@ function decorateButtons(main) {
 }
 
 /**
+ * Sets target and rel on links whose hostname differs from the current page.
+ * @param {Element} container - The element to search for links within
+ */
+export function decorateExternalLinks(container) {
+  container.querySelectorAll('a[href]').forEach((link) => {
+    if (new URL(link.href).hostname !== window.location.hostname) {
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+    }
+  });
+}
+
+/**
  * Decorates the main element.
  * @param {Element} main The main element
  */
@@ -187,16 +200,17 @@ async function loadLazy(doc) {
  * Loads everything that happens a lot later,
  * without impacting the user experience.
  */
-function loadDelayed() {
+function loadDelayed(doc) {
   // eslint-disable-next-line import/no-cycle
   window.setTimeout(() => import('./delayed.js'), 3000);
   // load anything that can be postponed to the latest here
+  decorateExternalLinks(doc.querySelector('main'));
 }
 
 async function loadPage() {
   await loadEager(document);
   await loadLazy(document);
-  loadDelayed();
+  loadDelayed(document);
 }
 
 loadPage();

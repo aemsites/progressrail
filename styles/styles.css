@@ -36,8 +36,11 @@
   --color-brand: var(--color-yellow);
   --color-brand-dark: var(--color-yellow-dark);
 
+  /* shadows */
+  --shadow-s: 0 1px 4px 0 rgb(0 0 0 / 20%);
+
   /* fonts */
-  --body-font-family: roboto, roboto-fallback, sans-serif;
+  --text-font-family: roboto, roboto-fallback, sans-serif;
   --heading-font-family: roboto-condensed, roboto-condensed-fallback, sans-serif;
 
   /* heading sizes */
@@ -73,13 +76,19 @@
   --space-xl: var(--space-800);
 
   /* layout */
-  --nav-height: 64px;
+  --nav-height: 180px;
   --site-width: 1200px;
 
   /* border radii */
   --radius-s: 4px;
   --radius-m: 8px;
   --radius-l: 16px;
+}
+
+@media (width >= 1200px) {
+  :root {
+    --nav-height: 128px;
+  }
 }
 
 /* fallback fonts */
@@ -109,13 +118,17 @@ body {
   margin: 0;
   background-color: var(--color-bg);
   color: var(--color-text);
-  font-family: var(--body-font-family);
+  font-family: var(--text-font-family);
   font-size: var(--text-m);
   line-height: var(--lh-m);
 }
 
 body.appear {
   display: block;
+}
+
+body[data-scroll='disabled'] {
+  overflow: hidden;
 }
 
 header {
@@ -241,6 +254,26 @@ img {
   width: 100%;
 }
 
+.icon.icon-chevron img,
+.icon.icon-chevron svg {
+  transition: transform 0.2s;
+}
+
+.icon.arrow-left img,
+.icon.arrow-left svg {
+  transform: rotate(180deg);
+}
+
+.icon.chevron-left img,
+.icon.chevron-left svg {
+  transform: rotate(90deg);
+}
+
+.icon.chevron-right img,
+.icon.chevron-right svg {
+  transform: rotate(-90deg);
+}
+
 /* LINKS */
 
 a:any-link {
@@ -260,6 +293,7 @@ input,
 textarea,
 select,
 button {
+  border: 0;
   font: inherit;
 }
 
