@@ -9,6 +9,7 @@ function decorateMedia(col) {
     video.muted = true;
     video.autoplay = true;
     video.loop = true;
+    video.setAttribute('aria-hidden', true);
   }
 
   col.querySelectorAll('p > picture').forEach((pic) => {
