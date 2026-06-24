@@ -345,11 +345,20 @@ const SECTION_META_DARK =
 
 // multimedia / media-youtube slider -> default content:
 //   image slide -> a picture; video slide -> a plain YouTube link (EDS embeds it).
+// Caption text of a multimedia slide (class is sometimes misspelled "mutlimedia").
+function slideCaption($s) {
+  return $s.find("[class*=imedia__description]").first().text().replace(/\s+/g, " ").trim();
+}
+
+// Classify a multimedia component's slides into images (with captions) + videos,
+// then render: a multi-image gallery -> carousel block; a single image -> the
+// picture plus its caption as default content; videos -> plain YouTube links.
 function mediaContent($mm) {
-  const out = [];
-  const seen = new Set();
   const slides = $mm.find(".multimedia__slide");
-  (slides.length ? slides : $mm).each((_, s) => {
+  const list = slides.length ? slides.toArray() : [$mm[0]];
+  const images = [], videos = [];
+  const seen = new Set();
+  for (const s of list) {
     const $s = $(s);
     let ytid = $s.find("[data-ytvideoid]").attr("data-ytvideoid")
       || $s.find("[data-videoid]").attr("data-videoid");
@@ -359,18 +368,29 @@ function mediaContent($mm) {
       const m = thumb && thumb.match(/\/vi\/([^/]+)\//);
       if (m) ytid = m[1];
     }
-    if (ytid) {
-      const url = `https://www.youtube.com/watch?v=${ytid}`;
-      if (!seen.has(url)) { seen.add(url); out.push(`<p><a href="${url}">${url}</a></p>`); }
-      return;
-    }
+    if (ytid) { if (!seen.has(ytid)) { seen.add(ytid); videos.push(ytid); } continue; }
     const src = $s.find("img").map((i, im) => $(im).attr("src")).get()
       .find((x) => x && !/[?&](cc-s|fmt=)/.test(x) && !/youtube|ytimg/.test(x));
     if (src && !seen.has(src)) {
       seen.add(src);
-      out.push(pic(src, $s.find("img").first().attr("alt") || ""));
+      images.push({ src, alt: $s.find("img").first().attr("alt") || "", cap: slideCaption($s) });
     }
-  });
+  }
+
+  const out = [];
+  if (images.length > 1) {
+    // gallery -> carousel: one slide per row (image + caption)
+    const rows = images.map((im) =>
+      `<div><div>${pic(im.src, im.alt)}${im.cap ? `<p>${im.cap}</p>` : ""}</div></div>`);
+    out.push(`<div class="carousel">${rows.join("")}</div>`);
+  } else if (images.length === 1) {
+    const im = images[0];
+    out.push(pic(im.src, im.alt));
+    if (im.cap) out.push(`<p>${im.cap}</p>`);
+  }
+  for (const id of videos) {
+    out.push(`<p><a href="https://www.youtube.com/watch?v=${id}">https://www.youtube.com/watch?v=${id}</a></p>`);
+  }
   return out.join("");
 }
 
