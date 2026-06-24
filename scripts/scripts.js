@@ -49,6 +49,30 @@ function buildWidgetAutoBlocks(main) {
 }
 
 /**
+ * Replaces standalone .mp4 links with native video elements.
+ * @param {Element} main The container element
+ */
+function decorateVideos(main) {
+  main.querySelectorAll('a[href$=".mp4"]').forEach((link) => {
+    const video = document.createElement('video');
+    video.src = link.href;
+    video.controls = true;
+    video.setAttribute('playsinline', '');
+    const p = link.closest('p');
+    if (
+      p
+      && p.querySelectorAll('a[href]').length === 1
+      && p.querySelector('a[href]') === link
+      && p.textContent.trim() === link.textContent.trim()
+    ) {
+      p.replaceWith(video);
+    } else {
+      link.replaceWith(video);
+    }
+  });
+}
+
+/**
  * Builds all synthetic blocks in a container element.
  * @param {Element} main The container element
  */
@@ -145,11 +169,12 @@ export function decorateExternalLinks(container) {
  */
 // eslint-disable-next-line import/prefer-default-export
 export function decorateMain(main) {
-  decorateIcons(main);
   buildAutoBlocks(main);
+  decorateIcons(main);
   decorateSections(main);
   decorateBlocks(main);
   decorateButtons(main);
+  decorateVideos(main);
 }
 
 /**
