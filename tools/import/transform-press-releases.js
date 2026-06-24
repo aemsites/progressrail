@@ -101,6 +101,55 @@ function transformBody($) {
   return html.trim();
 }
 
+function pic(src, alt = "") {
+  src = (src || "").replace(/^http:\/\//, "https://");
+  return `<picture><source srcset="${src}">`
+    + `<source srcset="${src}" media="(min-width: 600px)">`
+    + `<img src="${src}" alt="${alt}" loading="lazy"></picture>`;
+}
+
+// Trailing images/videos (multimedia components) appended after the body.
+function extractMedia($) {
+  const out = [];
+  const seen = new Set();
+  $(".multimedia").each((_, mm) => {
+    const $mm = $(mm);
+    const slides = $mm.find(".multimedia__slide");
+    (slides.length ? slides.toArray() : [mm]).forEach((s) => {
+      const $s = $(s);
+      let ytid = $s.find("[data-ytvideoid]").attr("data-ytvideoid")
+        || $s.find("[data-videoid]").attr("data-videoid");
+      if (!ytid) {
+        const thumb = $s.find("img").map((i, im) => $(im).attr("src")).get()
+          .find((x) => /(?:youtube\.com\/vi|ytimg\.com\/vi)\//.test(x || ""));
+        const m = thumb && thumb.match(/\/vi\/([^/]+)\//);
+        if (m) ytid = m[1];
+      }
+      if (ytid) {
+        const url = `https://www.youtube.com/watch?v=${ytid}`;
+        if (!seen.has(url)) { seen.add(url); out.push(`<p><a href="${url}">${url}</a></p>`); }
+        return;
+      }
+      const src = $s.find("img").map((i, im) => $(im).attr("src")).get()
+        .find((x) => x && !/[?&](cc-s|fmt=)/.test(x) && !/youtube|ytimg/.test(x));
+      if (src && !seen.has(src)) {
+        seen.add(src);
+        out.push(pic(src, $s.find("img").first().attr("alt") || ""));
+        const cap = $s.find("[class*=imedia__description]").first().text().replace(/\s+/g, " ").trim();
+        if (cap) out.push(`<p>${cap}</p>`);
+      }
+    });
+  });
+  return out.join("");
+}
+
+// Publication date as YYYY-MM-DD from the pubDateOnly meta.
+function extractPubDate($) {
+  const pub = $('meta[name="pubDateOnly"]').attr("content") || "";
+  const m = pub.match(/(\d{4}-\d{2}-\d{2})/);
+  return m ? m[1] : null;
+}
+
 function extractYear($) {
   // Authoritative: the <meta name="pubDateOnly" content="YYYY-MM-DD..."> tag.
   const pub = $('meta[name="pubDateOnly"]').attr("content");
@@ -120,11 +169,14 @@ function findHtml(dir, acc = []) {
   return acc;
 }
 
-function build(title, bodyHtml) {
+function build(title, bodyHtml, pubDate) {
+  const meta = pubDate
+    ? `<div class="metadata"><div><div><p>Publication Date</p></div><div><p>${pubDate}</p></div></div></div>`
+    : "";
   return (
     "\n<body>\n" +
     "  <header></header>\n" +
-    `  <main><div><h1><strong>${title}</strong></h1>${bodyHtml}</div></main>\n` +
+    `  <main><div><h1><strong>${title}</strong></h1>${bodyHtml}${meta}</div></main>\n` +
     "  <footer></footer>\n" +
     "</body>\n"
   );
@@ -149,7 +201,7 @@ function main() {
     while (used.has(name)) name = `${base}-${n++}.html`; // de-dupe collisions
     used.set(name, true);
 
-    const out = build(title, transformBody($));
+    const out = build(title, transformBody($) + extractMedia($), extractPubDate($));
     fs.writeFileSync(path.join(OUT, name), out);
     rows.push([path.basename(file), name, year, title]);
   }
