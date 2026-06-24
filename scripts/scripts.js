@@ -10,6 +10,7 @@ import {
   loadSections,
   loadCSS,
   buildBlock,
+  getMetadata,
 } from './aem.js';
 
 /**
@@ -22,6 +23,58 @@ async function loadFonts() {
   } catch (e) {
     // do nothing
   }
+}
+
+/**
+ * Whether the element is the page's primary main, not a detached fragment container.
+ * @param {Element} main The container element
+ * @returns {boolean}
+ */
+function isPageMain(main) {
+  return main === document.querySelector('main');
+}
+
+/**
+ * Whether a URL points at the press-releases widget.
+ * @param {string} href - Link href
+ * @returns {boolean}
+ */
+function isPressReleasesWidgetHref(href) {
+  try {
+    const { pathname } = new URL(href, window.location.href);
+    return /\/widgets\/press-releases\/press-releases(\.html)?$/i.test(pathname);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Whether the page already includes a press-releases widget.
+ * @param {Element} main The container element
+ * @returns {boolean}
+ */
+function hasPressReleasesWidget(main) {
+  if (main.querySelector('.press-releases')) return true;
+  return [...main.querySelectorAll('a[href]')].some((a) => isPressReleasesWidgetHref(a.href));
+}
+
+/**
+ * Appends a press-releases widget link on press-release template pages.
+ * @param {Element} main The container element
+ */
+function appendPressReleaseWidgetLink(main) {
+  if (getMetadata('template') !== 'press-release') return;
+  if (hasPressReleasesWidget(main)) return;
+
+  const link = document.createElement('a');
+  link.href = `${window.hlx.codeBasePath}/widgets/press-releases/press-releases.html?pageSize=3`;
+  link.textContent = link.href;
+
+  const section = document.createElement('div');
+  const p = document.createElement('p');
+  p.append(link);
+  section.append(p);
+  main.append(section);
 }
 
 /**
@@ -73,6 +126,15 @@ function decorateVideos(main) {
 }
 
 /**
+ * Builds template-specific auto blocks (page main only).
+ * @param {Element} main The container element
+ */
+function buildTemplateAutoBlocks(main) {
+  if (!isPageMain(main)) return;
+  appendPressReleaseWidgetLink(main);
+}
+
+/**
  * Builds all synthetic blocks in a container element.
  * @param {Element} main The container element
  */
@@ -95,6 +157,7 @@ function buildAutoBlocks(main) {
         });
       });
     }
+    buildTemplateAutoBlocks(main);
     buildWidgetAutoBlocks(main);
   } catch (error) {
     // eslint-disable-next-line no-console

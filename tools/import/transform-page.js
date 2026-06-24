@@ -471,8 +471,8 @@ const listTargets = ($L) => $L.find("li.list__item")
 const FRAGMENT_HOST = "https://main--progressrail--aemsites.aem.page";
 const FRAGMENT_RULES = [
   {
+    // Fragment: generated, language-aware page; inline reference replaced by a link.
     name: "leadership-execs",
-    // language-aware: each language references its own fragment page
     path: (lang) => `${lang}/company/leadership/fragments/leadership`,
     match(item) {
       if (item.type !== "list-cards") return false;
@@ -480,6 +480,16 @@ const FRAGMENT_RULES = [
       return t.length >= 3 && t.every((x) => /\/Leadership\/[^/]+\.html$/i.test(x));
     },
     build(item) { return listCardsBlock(item.$el); },
+  },
+  {
+    // Widget: external page (not generated here); just link to its fixed URL.
+    name: "press-releases",
+    widget: "https://main--progressrail--aemsites.aem.page/widgets/press-releases/press-releases.html",
+    match(item) {
+      if (!/^list-/.test(item.type)) return false;
+      const t = listTargets(item.$el);
+      return t.length >= 3 && t.every((x) => /\/PressReleases\/[^/]+\.html$/i.test(x));
+    },
   },
 ];
 let currentLang = "en";       // set per file by transformFile()
@@ -490,6 +500,10 @@ const fragmentUsage = {};     // url -> number of pages that referenced it
 function matchFragment(item) {
   const rule = FRAGMENT_RULES.find((r) => r.match(item));
   if (!rule) return null;
+  if (rule.widget) {
+    fragmentUsage[rule.widget] = (fragmentUsage[rule.widget] || 0) + 1;
+    return `<p><a href="${rule.widget}">${rule.widget}</a></p>`;
+  }
   const rel = rule.path(currentLang);
   const url = `${FRAGMENT_HOST}/${rel}`;
   const outPath = `${rel}.html`;
@@ -704,6 +718,11 @@ function runBatch(sourceRoot, contentRoot) {
     fs.mkdirSync(path.dirname(out), { recursive: true });
     fs.writeFileSync(out, `\n<body>\n  <header></header>\n  <main><div>${frag.content}</div></main>\n  <footer></footer>\n</body>\n`);
     console.log(`fragment ${frag.name}: ${outPath} (referenced on ${fragmentUsage[frag.url]} pages)`);
+  }
+  for (const rule of FRAGMENT_RULES) {
+    if (rule.widget && fragmentUsage[rule.widget]) {
+      console.log(`widget ${rule.name}: ${rule.widget} (referenced on ${fragmentUsage[rule.widget]} pages)`);
+    }
   }
 
   console.log(`transformed: ${ok} | press-releases skipped: ${skipPR} | errors: ${errs.length}`);

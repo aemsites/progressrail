@@ -33,6 +33,12 @@ export default async function decorate(widget) {
   const { widgetPath, widgetName } = parseWidgetHref(pathname);
 
   try {
+    widget.dataset.source = source.href;
+    searchParams.forEach((value, key) => {
+      widget.dataset[key] = value;
+    });
+    widget.classList.add(widgetName);
+
     const resp = await fetch(widgetUrl(widgetPath, widgetName, 'html'));
     widget.innerHTML = await resp.text();
 
@@ -43,12 +49,7 @@ export default async function decorate(widget) {
     })();
     await Promise.all([cssLoaded, decorationComplete]);
 
-    widget.classList.add(widgetName);
     widget.classList.remove('block');
-    widget.dataset.source = source.href;
-    searchParams.forEach((value, key) => {
-      widget.dataset[key] = value;
-    });
 
     const wrapper = widget.closest('.widget-wrapper');
     if (wrapper) {
