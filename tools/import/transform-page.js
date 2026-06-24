@@ -154,6 +154,7 @@ function listCardsBlock($list) {
     const { src, alt } = firstImg($li);
     const a = $li.find("a.list__item-content, a").first();
     const href = https(a.attr("href"));
+    if (!name && !src && !href) return; // skip empty placeholder items
     const text = $li.find(".list__item-cta, .list__readmore").first().text().trim() || "Learn More";
     const parts = [`<h3><strong>${name}</strong></h3>`];
     if (desc) parts.push(`<p>${desc}</p>`);
@@ -459,6 +460,44 @@ function columnsPairBlock($img, $text, imgFirst, variant) {
   return `<div class="${cls}"><div>${row}</div></div>`;
 }
 
+// ---- Fragments ----------------------------------------------------------
+// Reusable blocks that repeat across many pages are extracted to a single
+// fragment page and replaced inline with a plain link to it. Add rules here
+// to identify more fragments/widgets across the site.
+const listTargets = ($L) => $L.find("li.list__item")
+  .map((i, it) => $(it).find("#linkPagePath,#anchorValue").attr("value")
+    || $(it).find("a[href]").attr("href") || "").get().filter(Boolean);
+
+const FRAGMENT_HOST = "https://main--progressrail--aemsites.aem.page";
+const FRAGMENT_RULES = [
+  {
+    name: "leadership-execs",
+    // language-aware: each language references its own fragment page
+    path: (lang) => `${lang}/company/leadership/fragments/leadership`,
+    match(item) {
+      if (item.type !== "list-cards") return false;
+      const t = listTargets(item.$el);
+      return t.length >= 3 && t.every((x) => /\/Leadership\/[^/]+\.html$/i.test(x));
+    },
+    build(item) { return listCardsBlock(item.$el); },
+  },
+];
+let currentLang = "en";       // set per file by transformFile()
+// Captured across the whole batch (module-level so runBatch can write the pages).
+const fragments = {};         // outPath -> { content, url, name }
+const fragmentUsage = {};     // url -> number of pages that referenced it
+
+function matchFragment(item) {
+  const rule = FRAGMENT_RULES.find((r) => r.match(item));
+  if (!rule) return null;
+  const rel = rule.path(currentLang);
+  const url = `${FRAGMENT_HOST}/${rel}`;
+  const outPath = `${rel}.html`;
+  if (!fragments[outPath]) fragments[outPath] = { content: rule.build(item), url, name: rule.name };
+  fragmentUsage[url] = (fragmentUsage[url] || 0) + 1;
+  return `<p><a href="${url}">${url}</a></p>`;
+}
+
 function transformDoc() {
 const raw = [];
 $(selJoin).each((_, el) => {
@@ -518,6 +557,8 @@ for (const item of comps) {
     continue;
   }
   flushRun();
+  const fragLink = matchFragment(item);
+  if (fragLink) { cur().push(fragLink); continue; }
   switch (type) {
     case "hero": cur().push(heroBlock($el)); break;
     case "banner": cur().push(bannerBlock($el)); break;
@@ -585,7 +626,8 @@ const doc =
 }
 
 // Load one source file and return its transformed EDS document.
-function transformFile(srcFile) {
+function transformFile(srcFile, lang) {
+  currentLang = lang || (/^\/?fr(\/|$|\.)/.test(srcFile.split(/[\\/]/).slice(-3).join("/")) ? "fr" : "en");
   $ = cheerio.load(fs.readFileSync(srcFile, "utf8"), { decodeEntities: false });
   return transformDoc();
 }
@@ -626,7 +668,7 @@ function runBatch(sourceRoot, contentRoot) {
     const rel = path.relative(SRC_ROOT, srcFile);
     if (!isHome && isPressRelease(rel)) { skipPR++; return; }
     try {
-      const doc = transformFile(srcFile);
+      const doc = transformFile(srcFile, lang);
       const outRel = isHome ? path.join(lang, "index.html") : kebabPath(rel);
       const out = path.join(REPO, outRel);
       fs.mkdirSync(path.dirname(out), { recursive: true });
@@ -655,6 +697,14 @@ function runBatch(sourceRoot, contentRoot) {
   const merged = redirects.concat(kept).sort((a, b) => a.Source.localeCompare(b.Source));
   sheet.data = merged; sheet.total = merged.length; sheet.limit = merged.length; sheet.offset = 0;
   fs.writeFileSync(redirectsPath, JSON.stringify(sheet));
+
+  // Write the fragment pages captured during transformation.
+  for (const [outPath, frag] of Object.entries(fragments)) {
+    const out = path.join(REPO, outPath);
+    fs.mkdirSync(path.dirname(out), { recursive: true });
+    fs.writeFileSync(out, `\n<body>\n  <header></header>\n  <main><div>${frag.content}</div></main>\n  <footer></footer>\n</body>\n`);
+    console.log(`fragment ${frag.name}: ${outPath} (referenced on ${fragmentUsage[frag.url]} pages)`);
+  }
 
   console.log(`transformed: ${ok} | press-releases skipped: ${skipPR} | errors: ${errs.length}`);
   console.log(`redirects: ${redirects.length} new + ${kept.length} kept = ${merged.length} total`);
