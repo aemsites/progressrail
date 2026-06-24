@@ -409,13 +409,72 @@ function typeOf($el) {
 }
 
 // Build the EDS document string from the currently-loaded `$`.
+// The image src of an image-only multimedia component (null if it's a video).
+function mediaImageSrc($mm) {
+  const hasVideo = $mm.find("[data-ytvideoid],[data-videoid]").length
+    || $mm.find("img").toArray().some((im) => /youtube|ytimg/.test($(im).attr("src") || ""));
+  if (hasVideo) return null;
+  return $mm.find("img").map((i, im) => $(im).attr("src")).get()
+    .find((x) => x && !/[?&](cc-s|fmt=)/.test(x) && !/youtube|ytimg/.test(x)) || null;
+}
+
+// AEM grid width (1-12) of a component, or 12 if unsized.
+function gridWidth($el) {
+  const $g = $el.is("[class*='aem-GridColumn--default--']") ? $el
+    : $el.closest("[class*='aem-GridColumn--default--']");
+  const m = ($g.attr("class") || "").match(/aem-GridColumn--default--(\d+)/);
+  return m ? +m[1] : 12;
+}
+
+// An image-multimedia paired with an adjacent sized text becomes a columns block:
+//   image side  = DOM order (image-first -> left, text-first -> right)
+//   variant     = equal widths -> regular columns; unequal -> columns (narrow)
+function columnsPairBlock($img, $text, imgFirst, variant) {
+  const src = mediaImageSrc($img);
+  const alt = $img.find("img").first().attr("alt") || "";
+  const imgCell = `<div>${pic(src, alt)}</div>`;
+  const textCell = `<div>${cleanRte($text.find(".cmp-text").first()) || cleanRte($text)}</div>`;
+  const cls = variant === "narrow" ? "columns narrow" : "columns";
+  const row = imgFirst ? `${imgCell}${textCell}` : `${textCell}${imgCell}`;
+  return `<div class="${cls}"><div>${row}</div></div>`;
+}
+
 function transformDoc() {
-const comps = [];
+const raw = [];
 $(selJoin).each((_, el) => {
   const $el = $(el);
   if ($el.parents(selJoin).length) return; // top-level only
-  comps.push({ $el, type: typeOf($el) });
+  raw.push({ $el, type: typeOf($el) });
 });
+
+// Pre-pass: a sized image-multimedia next to a sized text is a columns pair.
+// (Full-width images stay as standalone default-content pictures.)
+const comps = [];
+const consumed = new Set();
+for (let i = 0; i < raw.length; i++) {
+  if (consumed.has(i)) continue;
+  const c = raw[i];
+  if (c.type === "media" && mediaImageSrc(c.$el)) {
+    const wImg = gridWidth(c.$el);
+    if (wImg < 12) {
+      const next = raw[i + 1], prev = raw[i - 1];
+      // image first -> image on the left
+      if (next && next.type === "text" && gridWidth(next.$el) < 12 && !consumed.has(i + 1)) {
+        const wT = gridWidth(next.$el);
+        comps.push({ type: "columns-pair", $img: c.$el, $text: next.$el, imgFirst: true, variant: wImg === wT ? "regular" : "narrow" });
+        consumed.add(i + 1);
+        continue;
+      }
+      // text first -> image on the right (replace the already-pushed text)
+      if (prev && prev.type === "text" && gridWidth(prev.$el) < 12 && comps.length && comps[comps.length - 1] === prev) {
+        const wT = gridWidth(prev.$el);
+        comps[comps.length - 1] = { type: "columns-pair", $img: c.$el, $text: prev.$el, imgFirst: false, variant: wImg === wT ? "regular" : "narrow" };
+        continue;
+      }
+    }
+  }
+  comps.push(c);
+}
 
 // Sections: each is an array of html strings; main renders one <div> per section.
 const sections = [[]];
@@ -430,7 +489,8 @@ function flushRun() {
   run = { type: null, items: [] };
 }
 
-for (const { $el, type } of comps) {
+for (const item of comps) {
+  const { $el, type } = item;
   if (type === "tile" || type === "columns") {
     if (run.type && run.type !== type) flushRun();
     run.type = type;
@@ -452,6 +512,7 @@ for (const { $el, type } of comps) {
     case "title": { const c = defaultContent($el, "title"); if (c) cur().push(c); break; }
     case "text": { const c = defaultContent($el, "text"); if (c) cur().push(c); break; }
     case "media": { const c = mediaContent($el); if (c) cur().push(c); break; }
+    case "columns-pair": cur().push(columnsPairBlock(item.$img, item.$text, item.imgFirst, item.variant)); break;
     case "banner-section":
       // teaser--banner becomes its own dark section, then content resumes after.
       sections.push([bannerSectionContent($el), SECTION_META_DARK]);
