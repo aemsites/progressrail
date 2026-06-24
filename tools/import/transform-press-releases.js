@@ -1,0 +1,169 @@
+#!/usr/bin/env node
+/**
+ * transform-press-releases.js
+ *
+ * Transforms full Progress Rail press-release pages into the stripped AEM
+ * document-authoring format:
+ *
+ *   <body>
+ *     <header></header>
+ *     <main><div><h1><strong>TITLE</strong></h1>...body paragraphs...</div></main>
+ *     <footer></footer>
+ *   </body>
+ *
+ * Content rules (derived from the hand-made example):
+ *   - Title comes from <title> ("ProgressRail | Real Title") and is wrapped in
+ *     <h1><strong>…</strong></h1>.
+ *   - Body comes from the single <div class="cmp-text"> block.
+ *   - <b> -> <strong> and <i> -> <em>.
+ *   - Empty paragraphs (<p>&nbsp;</p>, <p></p>) are dropped.
+ *   - &nbsp; is normalised to a regular space.
+ *
+ * Filename:  <year>-<slug>.html
+ *   - year : 4-digit year from the dateline in the body.
+ *   - slug : first few words of the title, kebab-cased, trailing stop-words
+ *            trimmed, so names stay short.
+ *
+ * Usage:
+ *   node transform-press-releases.js <srcDir> <outDir> [--map mapping.csv]
+ *
+ * Reads every *.html under srcDir, writes <year>-<slug>.html into outDir.
+ */
+
+const fs = require("fs");
+const path = require("path");
+const cheerio = require("cheerio");
+
+const SRC = path.resolve(process.argv[2]);
+const OUT = path.resolve(process.argv[3]);
+const mapIdx = process.argv.indexOf("--map");
+const MAP = mapIdx > -1 ? path.resolve(process.argv[mapIdx + 1]) : null;
+
+const STOPWORDS = new Set([
+  "to", "and", "of", "the", "for", "a", "an", "with", "in", "on", "at",
+  "et", "de", "la", "le", "les", "des", "du", "pour", "un", "une", "au",
+]);
+const MAX_SLUG_WORDS = 6;     // hard ceiling on words considered
+const SLUG_CHAR_BUDGET = 34;  // keep names short
+
+function slugify(title) {
+  const words = title
+    .toLowerCase()
+    .replace(/œ/g, "oe").replace(/æ/g, "ae") // expand ligatures to ASCII
+    .replace(/[‘’']/g, "")          // drop apostrophes
+    .replace(/[^a-z0-9À-ſ]+/gi, " ") // keep letters (incl. accents) & digits
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+
+  const picked = [];
+  let chars = 0;
+  for (const w of words) {
+    if (picked.length >= MAX_SLUG_WORDS) break;
+    if (picked.length >= 3 && chars + 1 + w.length > SLUG_CHAR_BUDGET) break;
+    picked.push(w);
+    chars += w.length + 1;
+  }
+  // Trim trailing stop-words so slugs don't end on "to"/"and"/etc.
+  while (picked.length > 3 && STOPWORDS.has(picked[picked.length - 1])) {
+    picked.pop();
+  }
+  return picked
+    .join("-")
+    .normalize("NFD").replace(/[̀-ͯ]/g, ""); // strip accents for ascii filename
+}
+
+function extractTitle($) {
+  let t = ($("title").first().text() || "").trim();
+  const bar = t.indexOf("|");
+  if (bar > -1) t = t.slice(bar + 1).trim(); // drop "ProgressRail | " prefix
+  return t;
+}
+
+function transformBody($) {
+  const body = $("div.cmp-text").first();
+
+  // <b> -> <strong>, <i> -> <em>
+  body.find("b").each((_, el) => { el.tagName = "strong"; });
+  body.find("i").each((_, el) => { el.tagName = "em"; });
+
+  // Drop empty paragraphs.
+  body.find("p").each((_, el) => {
+    const $el = $(el);
+    const txt = $el.text().replace(/ /g, " ").trim();
+    if (txt === "" && $el.find("img").length === 0) $el.remove();
+  });
+
+  let html = body.html() || "";
+  html = html.replace(/&nbsp;| /g, " "); // normalise non-breaking spaces
+  html = html.replace(/>\s+</g, "><");         // drop whitespace-only gaps between tags
+  html = html.replace(/[ \t\r\n]+/g, " ");     // collapse remaining whitespace
+  return html.trim();
+}
+
+function extractYear($) {
+  // Authoritative: the <meta name="pubDateOnly" content="YYYY-MM-DD..."> tag.
+  const pub = $('meta[name="pubDateOnly"]').attr("content");
+  let m = pub && pub.match(/\b(19|20)\d{2}\b/);
+  if (m) return m[0];
+  // Fallback: a year in the body dateline.
+  m = $("div.cmp-text").first().text().match(/\b(19|20)\d{2}\b/);
+  return m ? m[0] : null;
+}
+
+function findHtml(dir, acc = []) {
+  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, e.name);
+    if (e.isDirectory()) findHtml(full, acc);
+    else if (e.isFile() && /\.html?$/i.test(e.name)) acc.push(full);
+  }
+  return acc;
+}
+
+function build(title, bodyHtml) {
+  return (
+    "\n<body>\n" +
+    "  <header></header>\n" +
+    `  <main><div><h1><strong>${title}</strong></h1>${bodyHtml}</div></main>\n` +
+    "  <footer></footer>\n" +
+    "</body>\n"
+  );
+}
+
+function main() {
+  fs.mkdirSync(OUT, { recursive: true });
+  const files = findHtml(SRC).sort();
+  const used = new Map();
+  const rows = [["source", "new_filename", "year", "title"]];
+  let noYear = 0;
+
+  for (const file of files) {
+    const $ = cheerio.load(fs.readFileSync(file, "utf8"), { decodeEntities: false });
+    const title = extractTitle($);
+    const year = extractYear($) || "0000";
+    if (year === "0000") noYear++;
+
+    let base = `${year}-${slugify(title)}`;
+    let name = `${base}.html`;
+    let n = 2;
+    while (used.has(name)) name = `${base}-${n++}.html`; // de-dupe collisions
+    used.set(name, true);
+
+    const out = build(title, transformBody($));
+    fs.writeFileSync(path.join(OUT, name), out);
+    rows.push([path.basename(file), name, year, title]);
+  }
+
+  if (MAP) {
+    const csv = rows
+      .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+    fs.writeFileSync(MAP, csv);
+  }
+
+  console.log(`Transformed ${files.length} file(s) -> ${OUT}`);
+  if (noYear) console.log(`  WARNING: ${noYear} file(s) had no detectable year (named 0000-…)`);
+  if (MAP) console.log(`  Mapping written to ${MAP}`);
+}
+
+main();

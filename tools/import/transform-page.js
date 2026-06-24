@@ -84,16 +84,24 @@ function firstImg($el) {
 }
 
 // Descriptive body paragraph of a teaser (skip dates / hidden fields).
-function teaserBody($t) {
-  let p = $t.find(".teaser-blog-content").first();
-  if (!p.length) {
-    p = $t.find("p").filter((_, el) => {
-      const t = $(el).text().trim();
-      return t && !/^\d{4}-\d{2}-\d{2}$/.test(t);
-    }).first();
-  }
-  return p.text().replace(/\s+/g, " ").trim();
+// All meaningful body paragraphs of a teaser (role line, bio, etc.), in order,
+// skipping datelines and empties. (Leadership teasers have several paragraphs.)
+function teaserParas($t) {
+  const scope = $t.find(".teaser__text-wrap").first();
+  const where = scope.length ? scope : $t;
+  const out = [], seen = new Set();
+  where.find("p").each((_, p) => {
+    const t = $(p).text().replace(/\s+/g, " ").trim();
+    if (!t) return;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(t)) return;                 // iso date
+    if (/^[A-Z][a-z]+ \d{1,2}, \d{4}$/.test(t)) return;        // Month D, YYYY
+    if (seen.has(t)) return;
+    seen.add(t);
+    out.push(t);
+  });
+  return out;
 }
+const parasHtml = (paras) => paras.map((p) => `<p>${p}</p>`).join("");
 
 function teaserCTA($t) {
   const a = $t.find("a.button, a.teaserDefaultButtonText, a").first();
@@ -114,23 +122,19 @@ function heroBlock($t) {
 
 function bannerBlock($t) {
   const h = $t.find(".teaserHeading").first().text().trim();
-  const body = teaserBody($t);
   const { src, alt } = firstImg($t);
   const cta = teaserCTA($t);
   const ctaHtml = cta && cta.text
     ? `<p><a href="${cta.href}"><strong>${cta.text}</strong></a></p>` : "";
-  const bodyHtml = body ? `<p>${body}</p>` : "";
-  return `<div class="banner"><div><div><h2><strong>${h}</strong></h2>${bodyHtml}${ctaHtml}</div><div>${pic(src, alt)}</div></div></div>`;
+  return `<div class="banner"><div><div><h2><strong>${h}</strong></h2>${parasHtml(teaserParas($t))}${ctaHtml}</div><div>${pic(src, alt)}</div></div></div>`;
 }
 
 // One tile -> one card row (image cell + text cell).
 function tileRow($t) {
   const h = $t.find(".teaserHeading").first().text().trim();
-  const body = teaserBody($t);
   const { src, alt } = firstImg($t);
   const cta = teaserCTA($t);
-  const parts = [`<h3><strong>${h}</strong></h3>`];
-  if (body) parts.push(`<p>${body}</p>`);
+  const parts = [`<h3><strong>${h}</strong></h3>`, parasHtml(teaserParas($t))];
   if (cta && cta.text) parts.push(`<p><a href="${cta.href}">${cta.text}</a></p>`);
   return `<div><div>${pic(src, alt)}</div><div>${parts.join("")}</div></div>`;
 }
@@ -288,24 +292,24 @@ function metadataBlock() {
   );
 }
 
-// text cell shared by banner / columns / carousel (heading + body + CTA)
-function bannerCell(h, body, cta) {
-  const parts = [`<h2><strong>${h}</strong></h2>`];
-  if (body) parts.push(`<p>${body}</p>`);
+// text cell shared by banner / columns / carousel (heading + paragraphs + CTA)
+function bannerCell(h, paras, cta) {
+  const parts = [`<h2><strong>${h}</strong></h2>`, parasHtml(paras)];
   if (cta && cta.text) parts.push(`<p><a href="${cta.href}"><strong>${cta.text}</strong></a></p>`);
   return parts.join("");
 }
 
-// teaser--checkerboard run -> columns block (text/image side depends on --right)
+// teaser--checkerboard run -> columns block.
+// Source DOM is always text-then-image; teaser--right flips the image to the
+// LEFT (text right). EDS renders cells left-to-right, so order them accordingly.
 function columnsRow($t) {
   const h = $t.find(".teaserHeading").first().text().trim();
-  const body = teaserBody($t);
   const cta = teaserCTA($t);
   const { src, alt } = firstImg($t);
-  const textCell = `<div>${bannerCell(h, body, cta)}</div>`;
+  const textCell = `<div>${bannerCell(h, teaserParas($t), cta)}</div>`;
   const imgCell = `<div>${pic(src, alt)}</div>`;
   const right = ($t.attr("class") || "").split(/\s+/).includes("teaser--right");
-  return right ? `<div>${textCell}${imgCell}</div>` : `<div>${imgCell}${textCell}</div>`;
+  return right ? `<div>${imgCell}${textCell}</div>` : `<div>${textCell}${imgCell}</div>`;
 }
 const columnsBlock = (teasers) => `<div class="columns">${teasers.map(columnsRow).join("")}</div>`;
 
@@ -315,10 +319,9 @@ function carouselBlock($car) {
   $car.find(".cmp-carousel__item, .carousel__item").each((_, it) => {
     const $it = $(it);
     const h = $it.find(".teaserHeading, h1, h2, h3").first().text().trim();
-    const body = teaserBody($it);
     const cta = teaserCTA($it);
     const { src, alt } = firstImg($it);
-    rows.push(`<div><div>${bannerCell(h, body, cta)}</div><div>${pic(src, alt)}</div></div>`);
+    rows.push(`<div><div>${bannerCell(h, teaserParas($it), cta)}</div><div>${pic(src, alt)}</div></div>`);
   });
   return `<div class="carousel">${rows.join("")}</div>`;
 }
