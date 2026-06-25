@@ -61,6 +61,15 @@ let $;
 
 const https = (u) => (u || "").replace(/^http:\/\//, "https://");
 
+// Match DA's serialization to keep diffs clean: literal non-breaking space, and
+// &#x26; for ampersands inside attribute values (cheerio emits &nbsp; / &amp;).
+function daSerialize(html) {
+  // Drop every non-breaking space (entity or literal char) -> regular space.
+  html = html.replace(/&nbsp;|&#xa0;|&#160;| /gi, " ");
+  // Use &#x26; for ampersands inside attribute values (e.g. alt="News &#x26; Events").
+  return html.replace(/="[^"]*"/g, (m) => m.replace(/&amp;/g, "&#x26;"));
+}
+
 // Build an EDS <picture> from a single image URL.
 function pic(src, alt = "") {
   src = https(src);
@@ -116,16 +125,18 @@ function heroBlock($t) {
   const { src, alt } = firstImg($t);
   const cta = teaserCTA($t);
   const ctaHtml = cta && cta.text
-    ? `<p><a href="${cta.href}"><strong><em>${cta.text}</em></strong></a></p>` : "";
-  return `<div class="hero"><div><div>${pic(src, alt)}</div><div><h1>${h}</h1>${ctaHtml}</div></div></div>`;
+    ? `<p><a href="${cta.href}"><em><strong>${cta.text}</strong></em></a></p>` : "";
+  // two-cell model: text (heading + CTA) then image (matches current DA hero)
+  return `<div class="hero"><div><div><h1>${h}</h1>${ctaHtml}</div><div>${pic(src, alt)}</div></div></div>`;
 }
 
-function teaserHeroBlock($t) {
+function bannerBlock($t) {
   const h = $t.find(".teaserHeading").first().text().trim();
   const { src, alt } = firstImg($t);
   const cta = teaserCTA($t);
   const ctaHtml = cta && cta.text
-    ? `<p><a href="${cta.href}"><strong>${cta.text}</strong></a></p>` : "";
+    ? `<p><a href="${cta.href}"><em><strong>${cta.text}</strong></em></a></p>` : "";
+  // teaser--full-width is a hero (DA reclassified banner -> hero); keep h2 + body
   return `<div class="hero"><div><div><h2>${h}</h2>${parasHtml(teaserParas($t))}${ctaHtml}</div><div>${pic(src, alt)}</div></div></div>`;
 }
 
@@ -383,7 +394,8 @@ function mediaContent($mm) {
     // gallery -> carousel: one slide per row (image + caption)
     const rows = images.map((im) =>
       `<div><div>${pic(im.src, im.alt)}${im.cap ? `<p>${im.cap}</p>` : ""}</div></div>`);
-    out.push(`<div class="carousel">${rows.join("")}</div>`);
+    // image gallery -> carousel (slides); carousel--promo stays a plain carousel
+    out.push(`<div class="carousel slides">${rows.join("")}</div>`);
   } else if (images.length === 1) {
     const im = images[0];
     out.push(pic(im.src, im.alt));
@@ -512,7 +524,65 @@ function matchFragment(item) {
   return `<p><a href="${url}">${url}</a></p>`;
 }
 
+// Pre-pass: normalize AEM media / JS embeds anywhere in the document so they
+// don't leak raw widget markup when nested inside another block (tabs, accordion,
+// columns ...), where the main walker never reaches them.
+function cleanEmbeds() {
+  // Stray clientlib stylesheets AEM injects alongside media widgets.
+  $('link[rel="stylesheet"]').remove();
+  // Cookie-consent placeholders are not real content.
+  $(".cookie-warning, .multimedia-cookie-warning").remove();
+  // jsComponent: an <iframe> stuffed into a data-js attribute -> a plain link.
+  $(".jsComponent").each((_, el) => {
+    const $c = $(el);
+    const dj = $c.find("[data-js]").attr("data-js") || $c.attr("data-js") || "";
+    const m = dj.match(/src\s*=\s*(?:&quot;|&#x22;|"|')(.*?)(?:&quot;|&#x22;|"|'|>)/i);
+    if (m && m[1].trim()) {
+      const url = m[1].replace(/&amp;/g, "&").trim();
+      $c.replaceWith(`<p><a href="${url}">${url}</a></p>`);
+    } else $c.remove();
+  });
+  // experienceFragment + AEM grid scaffolding nested in a block panel is pure
+  // layout -> unwrap to its inner content. (Scoped to accordion/tabs panels so
+  // the top-level grid-width detection used by the columns pre-pass is untouched.)
+  $(".experiencefragment").toArray().forEach((el) => {
+    const $xf = $(el);
+    if (!$xf.closest(".accordion, .cmp-accordion, .tabs, .cmp-tabs").length) return;
+    $xf.find(".aem-Grid, .aem-GridColumn, .xf-content-height, .container, .row, [class^='col-'], [class*=' col-']")
+      .toArray().forEach((w) => { const $w = $(w); $w.replaceWith($w.contents()); });
+    $xf.replaceWith($xf.contents());
+  });
+  // Teasers nested inside another block (e.g. a tab/accordion panel) can't render
+  // as their own block in a cell -> flatten to heading + text + media + CTA.
+  // (Top-level teasers are handled by the main walker.)
+  $(".teaser").each((_, el) => {
+    const $t = $(el);
+    if (!$t.parents(selJoin).length) return;
+    const parts = [];
+    const h = $t.find(".teaserHeading").first().text().trim();
+    if (h) parts.push(`<h3>${h}</h3>`);
+    teaserParas($t).forEach((p) => parts.push(`<p>${p}</p>`));
+    const yt = $t.find("[data-ytvideoid]").attr("data-ytvideoid")
+      || $t.find("[data-videoid]").attr("data-videoid");
+    if (yt) parts.push(`<p><a href="https://www.youtube.com/watch?v=${yt}">https://www.youtube.com/watch?v=${yt}</a></p>`);
+    else { const { src, alt } = firstImg($t); if (src) parts.push(pic(src, alt)); }
+    const cta = teaserCTA($t);
+    if (cta && cta.text) parts.push(`<p><a href="${cta.href}">${cta.text}</a></p>`);
+    $t.replaceWith(parts.join(""));
+  });
+  // Multimedia nested inside another block -> its mediaContent rendering
+  // (video-only => YouTube link). Top-level multimedia is left for the walker.
+  $(".multimedia").each((_, el) => {
+    const $mm = $(el);
+    if (!$mm.parents(selJoin).length) return;
+    const repl = mediaContent($mm) || "";
+    const $wrap = $mm.closest(".media-youtube");
+    ($wrap.length ? $wrap : $mm).replaceWith(repl);
+  });
+}
+
 function transformDoc() {
+cleanEmbeds();
 const raw = [];
 $(selJoin).each((_, el) => {
   const $el = $(el);
@@ -552,6 +622,7 @@ for (let i = 0; i < raw.length; i++) {
 // Sections: each is an array of html strings; main renders one <div> per section.
 const sections = [[]];
 const cur = () => sections[sections.length - 1];
+let heroSectioned = false; // section break after the first hero
 
 // Group consecutive same-type components (tiles -> cards, checkerboard -> columns).
 let run = { type: null, items: [] };
@@ -574,8 +645,11 @@ for (const item of comps) {
   const fragLink = matchFragment(item);
   if (fragLink) { cur().push(fragLink); continue; }
   switch (type) {
-    case "hero": cur().push(heroBlock($el)); break;
-    case "banner": cur().push(teaserHeroBlock($el)); break;
+    case "hero":
+    case "banner": // teaser--full-width also renders as a hero block
+      cur().push(type === "hero" ? heroBlock($el) : bannerBlock($el));
+      if (!heroSectioned) { heroSectioned = true; sections.push([]); } // break after first hero
+      break;
     case "carousel": cur().push(carouselBlock($el)); break;
     case "accordion": cur().push(accordionBlock($el)); break;
     case "tabs": cur().push(tabsBlock($el)); break;
@@ -583,10 +657,7 @@ for (const item of comps) {
     case "list-links": cur().push(listBlock($el, "links")); break;
     case "list-detailed": cur().push(listBlock($el, "detailed")); break;
     case "list-product": cur().push(listBlock($el, "product")); break;
-    case "jump-nav":
-      sections.push([jumpNavBlock($el)]);
-      sections.push([]);
-      break;
+    case "jump-nav": cur().push(jumpNavBlock($el)); break;
     case "title": { const c = defaultContent($el, "title"); if (c) cur().push(c); break; }
     case "text": { const c = defaultContent($el, "text"); if (c) cur().push(c); break; }
     case "media": { const c = mediaContent($el); if (c) cur().push(c); break; }
@@ -613,7 +684,7 @@ let mainInner = sections
 // image with a real src, no <source srcset>, and no links.
 function stripEmptyRows(html) {
   const $$ = cheerio.load(html, { decodeEntities: false });
-  const BLOCKS = ["hero", "banner", "cards", "columns", "carousel", "accordion", "tabs", "list", "jump-nav", "metadata"];
+  const BLOCKS = ["hero", "banner", "cards", "columns", "carousel", "accordion", "tabs", "list", "jump-nav", "metadata", "section-metadata"];
   const isEmpty = ($el) => {
     if ($el.text().replace(/\s| /g, "").length) return false;
     if ($el.find("img").toArray().some((i) => ($$(i).attr("src") || "").trim())) return false;
@@ -629,7 +700,29 @@ function stripEmptyRows(html) {
       });
     });
   });
+  // A block cell holding loose text / inline content must wrap it in a <p>
+  // (EDS/DA convention: cell text is never bare). Cells already carrying a
+  // block-level child (p, heading, list, picture, ...) are left untouched.
+  const BLOCK_CHILD = "p,h1,h2,h3,h4,h5,h6,ul,ol,table,picture,img,figure,blockquote,div";
+  BLOCKS.forEach((b) => {
+    $$("." + b).each((_, blk) => {
+      $$(blk).children("div").each((_, row) => {
+        $$(row).children("div").each((_, cell) => {
+          const $c = $$(cell);
+          if (!$c.text().replace(/\s| /g, "").length && !$c.children("img,picture").length) return;
+          if ($c.children(BLOCK_CHILD).length) return; // already block-wrapped
+          $c.html(`<p>${$c.html()}</p>`);
+        });
+      });
+    });
+  });
   // cheerio wraps fragments in <html><body>; return inner body.
+  // DA strips redundant <strong> inside headings — match that (unwrap them).
+  // unwrap <strong> inside headings (DA strips it) — snapshot to survive mutation
+  $$("h1,h2,h3,h4,h5,h6").find("strong").toArray().forEach((s) => { const $s = $$(s); $s.replaceWith($s.contents()); });
+  // presentational <span class="..."> shouldn't pass through to EDS content — unwrap them
+  $$("span[class]").toArray().forEach((s) => { const $s = $$(s); $s.replaceWith($s.contents()); });
+  $$("a[target]").removeAttr("target"); // drop target attributes from links
   return $$("body").html();
 }
 mainInner = stripEmptyRows(mainInner);
@@ -639,7 +732,7 @@ const doc =
   mainInner +
   "</main>\n  <footer></footer>\n</body>\n";
 
-  return doc;
+  return daSerialize(doc);
 }
 
 // Load one source file and return its transformed EDS document.
@@ -679,20 +772,35 @@ function runBatch(sourceRoot, contentRoot) {
   const SRC_ROOT = path.resolve(sourceRoot);
   const REPO = path.resolve(contentRoot);
   const redirects = [];
-  let ok = 0, skipPR = 0, errs = [];
+  let ok = 0, skipPR = 0, skipProtected = 0, skipExcluded = 0, errs = [];
+
+  // Authored EDS files (homepage, nav/footer fragments, search) — never
+  // generated from the crawl. Excluded by default; pass --include-special to override.
+  const EXCLUDE_RE = /^(?:en|fr)\/(?:index|nav|footer|search)\.html$/;
+  const includeSpecial = process.argv.includes("--include-special");
+
+  // Pages a human edited in DA (from reconcile.js) — never overwrite these.
+  let protectedSet = new Set();
+  if (process.argv.includes("--skip-protected")) {
+    const pf = path.join(__dirname, "protected-files.json"); // written by reconcile.js, beside the scripts
+    if (fs.existsSync(pf)) protectedSet = new Set(JSON.parse(fs.readFileSync(pf, "utf8")));
+  }
 
   const handle = (srcFile, isHome, lang) => {
     const rel = path.relative(SRC_ROOT, srcFile);
     if (!isHome && isPressRelease(rel)) { skipPR++; return; }
     try {
-      const doc = transformFile(srcFile, lang);
       const outRel = isHome ? path.join(lang, "index.html") : kebabPath(rel);
-      const out = path.join(REPO, outRel);
-      fs.mkdirSync(path.dirname(out), { recursive: true });
-      fs.writeFileSync(out, doc);
+      const outKey = outRel.replace(/\\/g, "/");
+      if (!includeSpecial && EXCLUDE_RE.test(outKey)) { skipExcluded++; return; } // homepage/nav/footer
       if (!isHome) {
         redirects.push({ Source: "/" + rel, Destination: "/" + kebabPath(rel).replace(/\.html?$/i, "") });
       }
+      if (protectedSet.has(outRel)) { skipProtected++; return; } // keep the human edit
+      const doc = transformFile(srcFile, lang);
+      const out = path.join(REPO, outRel);
+      fs.mkdirSync(path.dirname(out), { recursive: true });
+      fs.writeFileSync(out, doc);
       ok++;
     } catch (e) { errs.push(rel + " :: " + e.message); }
   };
@@ -719,7 +827,7 @@ function runBatch(sourceRoot, contentRoot) {
   for (const [outPath, frag] of Object.entries(fragments)) {
     const out = path.join(REPO, outPath);
     fs.mkdirSync(path.dirname(out), { recursive: true });
-    fs.writeFileSync(out, `\n<body>\n  <header></header>\n  <main><div>${frag.content}</div></main>\n  <footer></footer>\n</body>\n`);
+    fs.writeFileSync(out, daSerialize(`\n<body>\n  <header></header>\n  <main><div>${frag.content}</div></main>\n  <footer></footer>\n</body>\n`));
     console.log(`fragment ${frag.name}: ${outPath} (referenced on ${fragmentUsage[frag.url]} pages)`);
   }
   for (const rule of FRAGMENT_RULES) {
@@ -728,7 +836,7 @@ function runBatch(sourceRoot, contentRoot) {
     }
   }
 
-  console.log(`transformed: ${ok} | press-releases skipped: ${skipPR} | errors: ${errs.length}`);
+  console.log(`transformed: ${ok} | press-releases skipped: ${skipPR} | protected skipped: ${skipProtected} | special skipped: ${skipExcluded} | errors: ${errs.length}`);
   console.log(`redirects: ${redirects.length} new + ${kept.length} kept = ${merged.length} total`);
   errs.slice(0, 15).forEach((e) => console.log("  ERROR " + e));
 }

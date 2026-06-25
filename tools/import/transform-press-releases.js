@@ -86,6 +86,11 @@ function transformBody($) {
   // <b> -> <strong>, <i> -> <em>
   body.find("b").each((_, el) => { el.tagName = "strong"; });
   body.find("i").each((_, el) => { el.tagName = "em"; });
+  // DA strips redundant <strong> inside headings — match that.
+  body.find("h1,h2,h3,h4,h5,h6").find("strong").toArray().forEach((s) => { const $s = $(s); $s.replaceWith($s.contents()); });
+  // presentational <span class="..."> shouldn't pass through to EDS content.
+  body.find("span[class]").toArray().forEach((s) => { const $s = $(s); $s.replaceWith($s.contents()); });
+  body.find("a[target]").removeAttr("target"); // drop target attributes from links
 
   // Drop empty paragraphs.
   body.find("p").each((_, el) => {
@@ -169,14 +174,17 @@ function findHtml(dir, acc = []) {
   return acc;
 }
 
+// Match DA's serialization: literal nbsp, &#x26; for ampersands in attributes.
+const daSerialize = (html) => html.replace(/="[^"]*"/g, (m) => m.replace(/&amp;/g, "&#x26;"));
+
 function build(title, bodyHtml, pubDate) {
   const meta = pubDate
     ? `<div class="metadata"><div><div><p>Publication Date</p></div><div><p>${pubDate}</p></div></div></div>`
     : "";
-  return (
+  return daSerialize(
     "\n<body>\n" +
     "  <header></header>\n" +
-    `  <main><div><h1><strong>${title}</strong></h1>${bodyHtml}${meta}</div></main>\n` +
+    `  <main><div><h1>${title}</h1>${bodyHtml}${meta}</div></main>\n` +
     "  <footer></footer>\n" +
     "</body>\n"
   );

@@ -65,6 +65,26 @@ the transformer didn't generate).
   `getDegSubList` endpoint URL for every paginated list (the static crawl only
   contains the first page of items). See `.aem/list-pagination-audit.csv`.
 
+## Preserving human edits made in DA
+
+Once pages are published, authors may edit them in DA. Re-running the transform
+would overwrite those edits, so the flow becomes:
+
+1. Pull the current DA content into `.aem/` (already present here).
+2. `node reconcile.js <contentRoot> --apply` — compares the transform output
+   against `.aem/`, ignoring DA's whitespace reformatting, and classifies each
+   page as `identical`, `transform` (structure-only change — safe to take),
+   `author-edit` (text changed — a human edited it) or `conflict` (both
+   changed). Author-edit + conflict pages are written to
+   `.aem/protected-files.json` and (with `--apply`) copied back into the working
+   tree. See `.aem/reconcile-report.csv`.
+3. `node transform-page.js <sourceRoot> <contentRoot> --skip-protected` — runs
+   the transform but never overwrites anything in `protected-files.json`.
+
+The protected list accumulates across runs, so protection sticks. `conflict`
+pages (a human edit AND a transform change) keep the human version and should be
+reconciled by hand.
+
 ## Known follow-ups
 
 - Paginated lists: only the first page of items is in the crawl; fetch the full
