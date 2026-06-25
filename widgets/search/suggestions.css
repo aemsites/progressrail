@@ -10,7 +10,7 @@
   border-radius: 4px;
   background-color: var(--color-bg);
   color: var(--color-text);
-  box-shadow: var(--shadow-s);
+  box-shadow: var(--shadow-default);
 }
 
 .search.suggestions[hidden] {

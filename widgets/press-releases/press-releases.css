@@ -54,7 +54,7 @@
 .press-releases .press-release-item:hover,
 .press-releases .press-release-item:focus-within {
   border-color: var(--color-link);
-  box-shadow: var(--shadow-s);
+  box-shadow: var(--shadow-default);
 }
 
 .press-releases .press-release-item time {

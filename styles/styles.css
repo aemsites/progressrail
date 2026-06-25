@@ -37,7 +37,8 @@
   --color-brand-dark: var(--color-yellow-dark);
 
   /* shadows */
-  --shadow-s: 0 1px 4px 0 rgb(0 0 0 / 20%);
+  --shadow-default: 0 1px 4px 0 rgb(0 0 0 / 20%);
+  --shadow-elevated: 0 15px 40px rgb(67 72 92 / 20%);
 
   /* fonts */
   --text-font-family: roboto, roboto-fallback, sans-serif;

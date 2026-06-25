@@ -51,7 +51,7 @@
 }
 
 .search .result:hover {
-  box-shadow: var(--shadow-s);
+  box-shadow: var(--shadow-default);
 }
 
 .search .result .media-wrapper {
