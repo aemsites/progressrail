@@ -24,7 +24,7 @@ header .header[data-nav] {
   gap: var(--space-s);
   position: fixed;
   inset: 0;
-  z-index: 3;
+  z-index: 4;
   max-height: 100dvh;
   background-image: linear-gradient(var(--color-black) 104px, var(--color-bg) 104px);
 }
@@ -449,7 +449,7 @@ header .header-nav .submenu-multi > li > button[aria-expanded='true'] + ul > li 
     top: 100%;
     left: 0;
     right: 0;
-    z-index: 2;
+    z-index: 3;
     height: 240px;
     padding: var(--space-s) 0;
     box-shadow: var(--shadow-s);
@@ -498,7 +498,7 @@ header .header-nav .submenu-multi > li > button[aria-expanded='true'] + ul > li 
     top: 100%;
     left: 0;
     right: 0;
-    z-index: 2;
+    z-index: 3;
     min-height: 240px;
     box-shadow: var(--shadow-s);
     background-color: var(--color-bg);
