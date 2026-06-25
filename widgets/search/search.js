@@ -717,7 +717,7 @@ export async function attachSearchSuggestions(input, opts = {}) {
   footer.appendChild(viewAll);
   overlay.appendChild(footer);
 
-  anchor.style.position = 'relative';
+  anchor.classList.add('search-suggestions-anchor');
   anchor.appendChild(overlay);
 
   let debounceTimer;
@@ -830,6 +830,7 @@ export async function attachSearchSuggestions(input, opts = {}) {
     overlay.removeEventListener('keydown', onOverlayKeydown);
     document.removeEventListener('click', onDocumentClick);
     overlay.remove();
+    anchor.classList.remove('search-suggestions-anchor');
     delete input.dataset.searchSuggestions;
   };
 

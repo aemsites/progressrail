@@ -1,3 +1,8 @@
+.search-suggestions-anchor {
+  position: relative;
+  z-index: 3;
+}
+
 .search.suggestions {
   position: absolute;
   top: calc(100% + 4px);
