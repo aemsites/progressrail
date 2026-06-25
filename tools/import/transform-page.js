@@ -583,7 +583,10 @@ for (const item of comps) {
     case "list-links": cur().push(listBlock($el, "links")); break;
     case "list-detailed": cur().push(listBlock($el, "detailed")); break;
     case "list-product": cur().push(listBlock($el, "product")); break;
-    case "jump-nav": cur().push(jumpNavBlock($el)); break;
+    case "jump-nav":
+      sections.push([jumpNavBlock($el)]);
+      sections.push([]);
+      break;
     case "title": { const c = defaultContent($el, "title"); if (c) cur().push(c); break; }
     case "text": { const c = defaultContent($el, "text"); if (c) cur().push(c); break; }
     case "media": { const c = mediaContent($el); if (c) cur().push(c); break; }
