@@ -116,17 +116,17 @@ function heroBlock($t) {
   const { src, alt } = firstImg($t);
   const cta = teaserCTA($t);
   const ctaHtml = cta && cta.text
-    ? `<p><a href="${cta.href}"><strong>${cta.text}</strong></a></p>` : "";
-  return `<div class="hero"><div><div>${pic(src, alt)}<h1><strong>${h}</strong></h1>${ctaHtml}</div></div></div>`;
+    ? `<p><a href="${cta.href}"><strong><em>${cta.text}</em></strong></a></p>` : "";
+  return `<div class="hero"><div><div>${pic(src, alt)}</div><div><h1>${h}</h1>${ctaHtml}</div></div></div>`;
 }
 
-function bannerBlock($t) {
+function teaserHeroBlock($t) {
   const h = $t.find(".teaserHeading").first().text().trim();
   const { src, alt } = firstImg($t);
   const cta = teaserCTA($t);
   const ctaHtml = cta && cta.text
     ? `<p><a href="${cta.href}"><strong>${cta.text}</strong></a></p>` : "";
-  return `<div class="banner"><div><div><h2><strong>${h}</strong></h2>${parasHtml(teaserParas($t))}${ctaHtml}</div><div>${pic(src, alt)}</div></div></div>`;
+  return `<div class="hero"><div><div><h2>${h}</h2>${parasHtml(teaserParas($t))}${ctaHtml}</div><div>${pic(src, alt)}</div></div></div>`;
 }
 
 // One tile -> one card row (image cell + text cell).
@@ -134,7 +134,7 @@ function tileRow($t) {
   const h = $t.find(".teaserHeading").first().text().trim();
   const { src, alt } = firstImg($t);
   const cta = teaserCTA($t);
-  const parts = [`<h3><strong>${h}</strong></h3>`, parasHtml(teaserParas($t))];
+  const parts = [`<h3>${h}</h3>`, parasHtml(teaserParas($t))];
   if (cta && cta.text) parts.push(`<p><a href="${cta.href}">${cta.text}</a></p>`);
   return `<div><div>${pic(src, alt)}</div><div>${parts.join("")}</div></div>`;
 }
@@ -156,7 +156,7 @@ function listCardsBlock($list) {
     const href = https(a.attr("href"));
     if (!name && !src && !href) return; // skip empty placeholder items
     const text = $li.find(".list__item-cta, .list__readmore").first().text().trim() || "Learn More";
-    const parts = [`<h3><strong>${name}</strong></h3>`];
+    const parts = [`<h3>${name}</h3>`];
     if (desc) parts.push(`<p>${desc}</p>`);
     if (href) parts.push(`<p><a href="${href}">${text}</a></p>`);
     rows.push(`<div><div>${pic(src, alt)}</div><div>${parts.join("")}</div></div>`);
@@ -231,7 +231,7 @@ function listBlock($list, variant) {
 
   if (hasImages) {
     const rows = items.map((x) => {
-      const parts = [`<h3><strong>${x.name}</strong></h3>`];
+      const parts = [`<h3>${x.name}</h3>`];
       if (x.desc) parts.push(`<p>${x.desc}</p>`);
       if (x.href) parts.push(`<p><a href="${x.href}">Learn More</a></p>`);
       return `<div><div>${x.img ? pic(x.img, x.name) : ""}</div><div>${parts.join("")}</div></div>`;
@@ -265,7 +265,7 @@ function defaultContent($el, type) {
     if (!hd.length) return "";
     const txt = hd.text().trim();
     if (!txt) return "";
-    return `<${hd[0].tagName}><strong>${txt}</strong></${hd[0].tagName}>`;
+    return `<${hd[0].tagName}>${txt}</${hd[0].tagName}>`;
   }
   // texteditor / text -> its rte paragraphs
   const box = $el.find(".cmp-text").first();
@@ -295,7 +295,7 @@ function metadataBlock() {
 
 // text cell shared by banner / columns / carousel (heading + paragraphs + CTA)
 function bannerCell(h, paras, cta) {
-  const parts = [`<h2><strong>${h}</strong></h2>`, parasHtml(paras)];
+  const parts = [`<h2>${h}</h2>`, parasHtml(paras)];
   if (cta && cta.text) parts.push(`<p><a href="${cta.href}"><strong>${cta.text}</strong></a></p>`);
   return parts.join("");
 }
@@ -575,7 +575,7 @@ for (const item of comps) {
   if (fragLink) { cur().push(fragLink); continue; }
   switch (type) {
     case "hero": cur().push(heroBlock($el)); break;
-    case "banner": cur().push(bannerBlock($el)); break;
+    case "banner": cur().push(teaserHeroBlock($el)); break;
     case "carousel": cur().push(carouselBlock($el)); break;
     case "accordion": cur().push(accordionBlock($el)); break;
     case "tabs": cur().push(tabsBlock($el)); break;
