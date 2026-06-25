@@ -46,7 +46,7 @@ When facing trade-offs, follow this order: *Intuitive* (author-friendly) > *Simp
   - PageSpeed must score 100 (https://www.aem.live/developer/keeping-it-100).
 - **Responsiveness**
   - Default styles target mobile (no `max-width` queries).
-  - Breakpoints at 600 / 800 / 900 / 1000 / 1200 / 1400px.
+  - Breakpoints at 600 / 900 / 1200px.
 - **Localization**
   - No hard-coded user-facing text.
   - All strings configurable or data-driven.
