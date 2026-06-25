@@ -1,27 +1,129 @@
+.cards {
+  display: flex;
+  justify-content: center;
+}
+
 .cards > ul {
   list-style: none;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(257px, 1fr));
+  flex: 1;
+  grid-template-columns: 1fr;
+  justify-items: center;
   gap: var(--space-m);
   margin: 0;
   padding: 0;
 }
 
+@media (width >= 600px) {
+  .cards.cols-2 > ul,
+  .cards.cols-4 > ul,
+  .cards.cols-6 > ul {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (width >= 900px) {
+  .cards.cols-3 > ul,
+  .cards.cols-6 > ul {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .cards.cols-4 > ul {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
 .cards > ul > li {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
   border: 1px solid var(--color-border);
   background-color: var(--color-bg);
 }
 
-.cards .cards-card-body {
-  margin: var(--space-s);
+.cards li.linked {
+  position: relative;
+  cursor: pointer;
+  transition: box-shadow 0.2s;
 }
 
-.cards .cards-card-image {
-  line-height: 0;
+.cards li.linked a::before {
+  content: '';
+  position: absolute;
+  inset: 0;
 }
 
-.cards > ul > li img {
+.cards li.linked:hover {
+  box-shadow: var(--shadow-elevated);
+}
+
+/* media wrapper */
+.cards .media-wrapper {
+  position: relative;
+  overflow: hidden;
+  height: 200px;
+  border: 1px solid var(--color-border);
+  border-bottom: 0;
+}
+
+.cards .media-wrapper picture {
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+}
+
+.cards .media-wrapper img {
+  height: 100%;
   width: 100%;
-  aspect-ratio: 4 / 3;
   object-fit: cover;
+}
+
+@media (width >= 600px) {
+  .cards .media-wrapper {
+    height: unset;
+    aspect-ratio: 4 / 3;
+  }
+}
+
+/* body wrapper */
+.cards .body-wrapper {
+  flex: 1;
+  padding: var(--space-m);
+}
+
+/* footer */
+.cards footer {
+  padding: var(--space-m);
+  padding-top: 0;
+}
+
+.cards footer .button {
+  width: 100%;
+}
+
+.cards footer a[href]:not(.button) {
+  color: inherit;
+  font-family: var(--heading-font-family);
+  text-transform: uppercase;
+}
+
+.cards footer a[href]:not(.button)::after {
+  content: '';
+  display: inline-block;
+  height: 1em;
+  width: 1em;
+  margin-left: 1ch;
+  background-color: currentcolor;
+  mask-image: url('/icons/chevron.svg');
+  mask-repeat: no-repeat;
+  mask-size: contain;
+  transform: rotate(-90deg);
+  vertical-align: middle;
+}
+
+@media (width >= 900px) {
+  .cards footer .button {
+    width: unset;
+  }
 }
