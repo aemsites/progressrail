@@ -355,8 +355,6 @@ function bannerSectionContent($t) {
   if (cta && cta.text) parts.push(`<p><a href="${cta.href}">${cta.text}</a></p>`);
   return parts.join("");
 }
-const SECTION_META_DARK =
-  `<div class="section-metadata"><div><div>Style</div><div>dark</div></div></div>`;
 
 // multimedia / media-youtube slider -> default content:
 //   image slide -> a picture; video slide -> a plain YouTube link (EDS embeds it).
@@ -631,11 +629,32 @@ function cleanEmbeds() {
 
 function transformDoc() {
 cleanEmbeds();
+
+// In-page anchors referenced by a jump-nav: each becomes a new section whose
+// section-metadata carries an `id`, so the jump-nav links resolve in EDS.
+const navIds = new Set();
+$(".secondary-navigation a[href^='#'], .jump-nav a[href^='#']").each((_, a) => {
+  const id = (($(a).attr("href") || "").slice(1)).trim();
+  if (id && id !== "top" && id !== "mainContent") navIds.add(id);
+});
+const anchorOf = new Map(); // top-level component element -> id that starts its section
+if (navIds.size) {
+  let pending = null;
+  $("*").each((_, el) => {
+    const $el = $(el);
+    const id = $el.attr("id");
+    if (id && navIds.has(id)) { pending = id; return; }    // an anchor marker
+    if (pending && $el.is(selJoin) && !$el.parents(selJoin).length) {
+      anchorOf.set(el, pending); pending = null;             // the next top-level component
+    }
+  });
+}
+
 const raw = [];
 $(selJoin).each((_, el) => {
   const $el = $(el);
   if ($el.parents(selJoin).length) return; // top-level only
-  raw.push({ $el, type: typeOf($el) });
+  raw.push({ $el, type: typeOf($el), anchorId: anchorOf.get(el) });
 });
 
 // Pre-pass: a sized image-multimedia next to a sized text is a columns pair.
@@ -652,14 +671,14 @@ for (let i = 0; i < raw.length; i++) {
       // image first -> image on the left
       if (next && next.type === "text" && gridWidth(next.$el) < 12 && !consumed.has(i + 1)) {
         const wT = gridWidth(next.$el);
-        comps.push({ type: "columns-pair", $img: c.$el, $text: next.$el, imgFirst: true, variant: wImg === wT ? "regular" : "narrow" });
+        comps.push({ type: "columns-pair", $img: c.$el, $text: next.$el, imgFirst: true, variant: wImg === wT ? "regular" : "narrow", anchorId: c.anchorId });
         consumed.add(i + 1);
         continue;
       }
       // text first -> image on the right (replace the already-pushed text)
       if (prev && prev.type === "text" && gridWidth(prev.$el) < 12 && comps.length && comps[comps.length - 1] === prev) {
         const wT = gridWidth(prev.$el);
-        comps[comps.length - 1] = { type: "columns-pair", $img: c.$el, $text: prev.$el, imgFirst: false, variant: wImg === wT ? "regular" : "narrow" };
+        comps[comps.length - 1] = { type: "columns-pair", $img: c.$el, $text: prev.$el, imgFirst: false, variant: wImg === wT ? "regular" : "narrow", anchorId: prev.anchorId };
         continue;
       }
     }
@@ -667,8 +686,9 @@ for (let i = 0; i < raw.length; i++) {
   comps.push(c);
 }
 
-// Sections: each is an array of html strings; main renders one <div> per section.
-const sections = [[]];
+// Sections: each is { items: html[], style, id }; main renders one <div> per section.
+const newSection = () => ({ items: [], style: null, id: null });
+const sections = [newSection()];
 const cur = () => sections[sections.length - 1];
 let heroSectioned = false; // section break after the first hero
 
@@ -676,13 +696,19 @@ let heroSectioned = false; // section break after the first hero
 let run = { type: null, items: [] };
 function flushRun() {
   if (!run.items.length) return;
-  if (run.type === "tile") cur().push(cardsHorizontal(run.items));
-  else if (run.type === "columns") cur().push(columnsBlock(run.items));
+  if (run.type === "tile") cur().items.push(cardsHorizontal(run.items));
+  else if (run.type === "columns") cur().items.push(columnsBlock(run.items));
   run = { type: null, items: [] };
 }
 
 for (const item of comps) {
   const { $el, type } = item;
+  // An in-page anchor referenced by the jump-nav starts a new section carrying its id.
+  if (item.anchorId) {
+    flushRun();
+    if (cur().items.length || cur().id) sections.push(newSection());
+    cur().id = item.anchorId;
+  }
   if (type === "tile" || type === "columns") {
     if (run.type && run.type !== type) flushRun();
     run.type = type;
@@ -691,40 +717,47 @@ for (const item of comps) {
   }
   flushRun();
   const fragLink = matchFragment(item);
-  if (fragLink) { cur().push(fragLink); continue; }
+  if (fragLink) { cur().items.push(fragLink); continue; }
   switch (type) {
     case "hero":
     case "banner": // teaser--full-width also renders as a hero block
-      cur().push(type === "hero" ? heroBlock($el) : bannerBlock($el));
-      if (!heroSectioned) { heroSectioned = true; sections.push([]); } // break after first hero
+      cur().items.push(type === "hero" ? heroBlock($el) : bannerBlock($el));
+      if (!heroSectioned) { heroSectioned = true; sections.push(newSection()); } // break after first hero
       break;
-    case "carousel": cur().push(carouselBlock($el)); break;
-    case "accordion": cur().push(accordionBlock($el)); break;
-    case "tabs": cur().push(tabsBlock($el)); break;
-    case "list-cards": cur().push(listCardsBlock($el)); break;
-    case "list-links": cur().push(listBlock($el, "links")); break;
-    case "list-detailed": cur().push(listBlock($el, "detailed")); break;
-    case "list-product": cur().push(listBlock($el, "product")); break;
-    case "jump-nav": cur().push(jumpNavBlock($el)); break;
-    case "title": { const c = defaultContent($el, "title"); if (c) cur().push(c); break; }
-    case "text": { const c = defaultContent($el, "text"); if (c) cur().push(c); break; }
-    case "media": { const c = mediaContent($el); if (c) cur().push(c); break; }
-    case "columns-pair": cur().push(columnsPairBlock(item.$img, item.$text, item.imgFirst, item.variant)); break;
+    case "carousel": cur().items.push(carouselBlock($el)); break;
+    case "accordion": cur().items.push(accordionBlock($el)); break;
+    case "tabs": cur().items.push(tabsBlock($el)); break;
+    case "list-cards": cur().items.push(listCardsBlock($el)); break;
+    case "list-links": cur().items.push(listBlock($el, "links")); break;
+    case "list-detailed": cur().items.push(listBlock($el, "detailed")); break;
+    case "list-product": cur().items.push(listBlock($el, "product")); break;
+    case "jump-nav": cur().items.push(jumpNavBlock($el)); break;
+    case "title": { const c = defaultContent($el, "title"); if (c) cur().items.push(c); break; }
+    case "text": { const c = defaultContent($el, "text"); if (c) cur().items.push(c); break; }
+    case "media": { const c = mediaContent($el); if (c) cur().items.push(c); break; }
+    case "columns-pair": cur().items.push(columnsPairBlock(item.$img, item.$text, item.imgFirst, item.variant)); break;
     case "banner-section":
       // teaser--banner becomes its own dark section, then content resumes after.
-      sections.push([bannerSectionContent($el), SECTION_META_DARK]);
-      sections.push([]);
+      { const s = newSection(); s.items.push(bannerSectionContent($el)); s.style = "dark"; sections.push(s); }
+      sections.push(newSection());
       break;
     case "skip": break;
-    default: cur().push(`<!-- UNMAPPED component: ${type} -->`);
+    default: cur().items.push(`<!-- UNMAPPED component: ${type} -->`);
   }
 }
 flushRun();
-cur().push(metadataBlock());
+cur().items.push(metadataBlock());
 
+// section-metadata combining any Style + id this section carries.
+function sectionMeta(s) {
+  const rows = [];
+  if (s.style) rows.push(`<div><div>Style</div><div>${s.style}</div></div>`);
+  if (s.id) rows.push(`<div><div>id</div><div>${s.id}</div></div>`);
+  return rows.length ? `<div class="section-metadata">${rows.join("")}</div>` : "";
+}
 let mainInner = sections
-  .filter((s) => s.length)
-  .map((s) => `<div>${s.join("")}</div>`)
+  .filter((s) => s.items.length || s.id || s.style)
+  .map((s) => `<div>${s.items.join("")}${sectionMeta(s)}</div>`)
   .join("");
 
 // --- General cleanup: strip empty rows from every block ---
