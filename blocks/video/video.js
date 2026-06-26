@@ -43,7 +43,7 @@ function createEmbed(type, url) {
 /**
  * Builds a thumbnail overlay.
  * @param {HTMLElement} block - block element containing the authored thumbnail image
- * @param {HTMLIFrameElement} embed - video iframe
+ * @param {HTMLIFrameElement} embed - video iframe to activate on play
  * @returns {HTMLElement|null} the placeholder figure
  */
 function createPlaceholder(block, embed) {
@@ -65,6 +65,7 @@ function createPlaceholder(block, embed) {
     const src = new URL(embed.src);
     src.searchParams.set('autoplay', 1);
     embed.src = src.href;
+    if (!embed.isConnected) block.append(embed);
     figure.remove();
   }
 
