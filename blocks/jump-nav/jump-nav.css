@@ -90,15 +90,6 @@ div.jump-nav-container {
   opacity: 1;
 }
 
-div.jump-nav-container ~ .section h1,
-div.jump-nav-container ~ .section h2,
-div.jump-nav-container ~ .section h3,
-div.jump-nav-container ~ .section h4,
-div.jump-nav-container ~ .section h5,
-div.jump-nav-container ~ .section h6 {
-  scroll-margin-top: calc(1.2em + var(--jump-nav-height, var(--nav-height)));
-}
-
 .jump-nav .button-wrapper {
   display: flex;
   flex-shrink: 0;

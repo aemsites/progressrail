@@ -11,12 +11,6 @@ export default function decorate(block) {
 
   const container = block.closest('.jump-nav-container');
 
-  const main = container.closest('main');
-  const resizeObserver = new ResizeObserver(() => {
-    main.style.setProperty('--jump-nav-height', `${container.offsetHeight}px`);
-  });
-  resizeObserver.observe(container);
-
   const links = [...ul.querySelectorAll('a[href*="#"]')];
   const targets = links
     .map((a) => {
@@ -29,6 +23,12 @@ export default function decorate(block) {
     .filter(Boolean);
 
   if (!targets.length) return;
+
+  const resizeObserver = new ResizeObserver(() => {
+    const height = `calc(${container.offsetHeight}px + 1.2em)`;
+    targets.forEach((t) => { t.style.scrollMarginTop = height; });
+  });
+  resizeObserver.observe(container);
 
   const hash = window.location.hash.slice(1);
   const initial = (hash && links.find((a) => a.href.endsWith(`#${hash}`))) || links[0];
