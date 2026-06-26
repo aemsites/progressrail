@@ -1,20 +1,211 @@
-footer {
-  background-color: var(--color-bg-light);
-  font-size: var(--text-s);
+body > footer {
+  overflow: clip;
+  background-color: var(--color-gray-300);
 }
 
-footer .footer > div {
+footer .footer {
+  display: grid;
+  grid-template-areas:
+    'nav'
+    'social'
+    'copyright';
+  grid-template-columns: 1fr;
+  gap: var(--space-s);
   max-width: var(--site-width);
-  margin: auto;
-  padding: var(--space-l) var(--space-m) var(--space-m);
+  margin: 0 auto;
+  padding: var(--space-l);
+}
+
+@media (width >=900px) {
+  footer .footer {
+    gap: var(--space-m);
+  }
 }
 
 footer .footer p {
   margin: 0;
 }
 
-@media (width >= 900px) {
-  footer .footer > div {
-    padding: var(--space-l) var(--space-l) var(--space-m);
+footer .footer a {
+  color: inherit;
+}
+
+footer .footer ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+footer .footer summary {
+  list-style: none;
+  display: grid;
+  grid-template-columns: 1fr 44px;
+  align-items: center;
+  gap: 1ch;
+  padding: 1.2em 0;
+  font-family: var(--heading-font-family);
+  cursor: pointer;
+}
+
+footer .footer summary::-webkit-details-marker {
+  display: none;
+}
+
+footer .footer summary:hover,
+footer .footer summary:focus-visible,
+footer .footer details[open] summary {
+  text-decoration: underline;
+}
+
+footer .footer summary .icon {
+  justify-self: center;
+}
+
+footer .footer details[open] .icon img,
+footer .footer details[open] .icon svg {
+  transform: rotate(-180deg);
+}
+
+footer .footer details>ul {
+  display: block;
+  overflow: hidden;
+  height: 0;
+  padding: 0.8em 0;
+  transition: height 0.2s ease;
+}
+
+footer .footer details>ul>li {
+  padding: 0.6em 0;
+}
+
+@media (width >=600px) {
+  footer .footer summary {
+    grid-template-columns: 1fr;
+    cursor: default;
+    pointer-events: none;
+  }
+
+  footer .footer summary:hover,
+  footer .footer summary:focus-visible,
+  footer .footer details[open] summary {
+    text-decoration: none;
+  }
+
+  footer .footer summary .icon {
+    display: none;
+  }
+
+  footer .footer details>ul {
+    overflow: visible;
+    height: auto;
+    padding: 0;
+    transition: none;
+  }
+
+  footer .footer details>ul>li {
+    padding: 0.4em 0;
+  }
+}
+
+/* footer nav */
+footer .footer-nav {
+  grid-area: nav;
+}
+
+@media (width >=600px) {
+  footer .footer-nav {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+    gap: var(--space-s);
+  }
+}
+
+@media (width >=900px) {
+  footer .footer-nav {
+    grid-template-columns: repeat(auto-fit, minmax(6rem, 1fr));
+  }
+}
+
+/* footer social */
+footer .footer-social {
+  grid-area: social;
+  font-size: 24px;
+}
+
+/* stylelint-disable-next-line no-descending-specificity */
+footer .footer-social ul {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 1ch;
+}
+
+footer .footer-social a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  width: 44px;
+}
+
+@media (width >=600px) {
+  footer .footer-social ul {
+    justify-content: flex-end;
+  }
+}
+
+/* footer copyright */
+footer .footer-copyright {
+  grid-area: copyright;
+  position: relative;
+  padding-top: var(--space-l);
+  color: var(--color-link);
+  isolation: isolate;
+}
+
+footer .footer-copyright::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: calc(50% - 50vw);
+  bottom: calc(-1 * var(--space-l));
+  z-index: -1;
+  width: 100vw;
+  background-color: var(--color-bg);
+}
+
+/* stylelint-disable-next-line no-descending-specificity */
+footer .footer-copyright li {
+  padding: 0.8em 0;
+}
+
+footer .footer-copyright #cookie {
+  padding: 0;
+  color: inherit;
+}
+
+footer .footer-copyright a:hover,
+footer .footer-copyright a:focus-visible,
+footer .footer-copyright #cookie:hover,
+footer .footer-copyright #cookie:focus-visible {
+  text-decoration: underline;
+}
+
+@media (width >=600px) {
+  footer .footer-copyright ul {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  footer .footer-copyright li {
+    padding: 0;
+  }
+
+  footer .footer-copyright li + li::before {
+    content: '|';
+    margin-right: 1ch;
+    padding-left: 1ch;
+    color: var(--color-muted);
   }
 }
