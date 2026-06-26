@@ -40,6 +40,16 @@ div.jump-nav-container {
   overflow-x: auto;
   margin: 0;
   padding: 0;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.jump-nav ul::-webkit-scrollbar {
+  display: none;
+}
+
+.jump-nav ul li {
+  scroll-snap-align: start;
 }
 
 @media (width >= 900px) {
@@ -76,7 +86,7 @@ div.jump-nav-container {
   transition: opacity 0.2s;
 }
 
-.jump-nav ul a[aria-current="true"]::after {
+.jump-nav ul a[aria-current="location"]::after {
   opacity: 1;
 }
 
