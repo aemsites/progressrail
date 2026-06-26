@@ -1,7 +1,7 @@
 div.jump-nav-container {
   position: sticky;
   top: 0;
-  z-index: 2;
+  z-index: 3;
   margin: 0;
 }
 
@@ -40,6 +40,16 @@ div.jump-nav-container {
   overflow-x: auto;
   margin: 0;
   padding: 0;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.jump-nav ul::-webkit-scrollbar {
+  display: none;
+}
+
+.jump-nav ul li {
+  scroll-snap-align: start;
 }
 
 @media (width >= 900px) {
@@ -76,8 +86,17 @@ div.jump-nav-container {
   transition: opacity 0.2s;
 }
 
-.jump-nav ul a[aria-current="true"]::after {
+.jump-nav ul a[aria-current="location"]::after {
   opacity: 1;
+}
+
+div.jump-nav-container ~ .section h1,
+div.jump-nav-container ~ .section h2,
+div.jump-nav-container ~ .section h3,
+div.jump-nav-container ~ .section h4,
+div.jump-nav-container ~ .section h5,
+div.jump-nav-container ~ .section h6 {
+  scroll-margin-top: calc(1.2em + var(--jump-nav-height, var(--nav-height)));
 }
 
 .jump-nav .button-wrapper {
