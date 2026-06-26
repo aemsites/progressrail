@@ -1,0 +1,38 @@
+.video {
+  display: block;
+  position: relative;
+  margin: 0 auto;
+  aspect-ratio: 16 / 9;
+}
+
+.video iframe {
+  height: 100%;
+  width: 100%;
+  border: none;
+  border-radius: 0;
+}
+
+.video .placeholder {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.video .placeholder img {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+}
+
+.video .placeholder .icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  height: 80px;
+  width: 80px;
+  color: var(--color-white);
+  filter: drop-shadow(0 1px 5px rgb(0 0 0 / 60%));
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
