@@ -11,6 +11,7 @@ div.hero-container:not(.teaser) {
   display: flex;
   align-items: center;
   position: relative;
+  z-index: 1;
   overflow: hidden;
   min-height: 350px;
   border-bottom: 1px solid var(--color-border);
