@@ -503,8 +503,43 @@ const FRAGMENT_RULES = [
       return t.length >= 3 && t.every((x) => /\/PressReleases\/[^/]+\.html$/i.test(x));
     },
   },
+  {
+    // Widget: any AEM "list children" component -> the card-list widget, with a
+    // stable, language-relative `root` query param:
+    //   (no param)        -> children of self
+    //   ?root=parent      -> children of the parent (siblings)
+    //   ?root=/seg/...     -> children of an explicit page (relative to lang root)
+    //   ?root=unresolved   -> couldn't infer from the crawl (revisit later)
+    name: "card-list",
+    match(item) { return cardListWidgetUrl(item) !== null; },
+    widgetUrl(item) { return cardListWidgetUrl(item); },
+  },
 ];
+const CARD_LIST_WIDGET = "https://main--progressrail--aemsites.aem.page/widgets/card-list/card-list.html";
+
+// For an AEM list with listFormValue=children, work out the widget URL + root
+// param. Returns null if the list isn't a "children" list (leave it inline).
+function cardListWidgetUrl(item) {
+  if (!/^list/.test(item.type || "")) return null;
+  const $L = item.$el;
+  if (($L.find("#listFormValue").attr("value") || "").toLowerCase() !== "children") return null;
+  const dir = (p) => p.replace(/\/[^/]*$/, "");
+  const hrefs = $L.find("li.list__item a[href]").map((i, a) => $(a).attr("href") || "").get()
+    .filter((x) => /^\/(en|fr)\/[^"#?]+\.html?$/i.test(x));
+  let root; // undefined => self (no param)
+  if (!hrefs.length) root = "unresolved";
+  else {
+    const dirs = [...new Set(hrefs.map(dir))];
+    const itemdir = dirs.length === 1 ? dirs[0] : null;     // null => mixed/curated
+    if (!itemdir) root = "unresolved";
+    else if (itemdir === currentPageAbs.replace(/\.html?$/i, "")) root = undefined;   // self
+    else if (itemdir === dir(currentPageAbs)) root = "parent";                         // siblings
+    else root = ("/" + kebabPath(itemdir.replace(/^\//, ""))).replace(/^\/(en|fr)/, ""); // explicit
+  }
+  return root === undefined ? CARD_LIST_WIDGET : `${CARD_LIST_WIDGET}?root=${root}`;
+}
 let currentLang = "en";       // set per file by transformFile()
+let currentPageAbs = "/en/index.html"; // source path of the page being transformed
 // Captured across the whole batch (module-level so runBatch can write the pages).
 const fragments = {};         // outPath -> { content, url, name }
 const fragmentUsage = {};     // url -> number of pages that referenced it
@@ -512,6 +547,12 @@ const fragmentUsage = {};     // url -> number of pages that referenced it
 function matchFragment(item) {
   const rule = FRAGMENT_RULES.find((r) => r.match(item));
   if (!rule) return null;
+  if (rule.widgetUrl) {                         // widget with a dynamically-built URL
+    const url = rule.widgetUrl(item);
+    if (!url) return null;
+    fragmentUsage[url] = (fragmentUsage[url] || 0) + 1;
+    return `<p><a href="${url}">${url}</a></p>`;
+  }
   if (rule.widget) {
     fragmentUsage[rule.widget] = (fragmentUsage[rule.widget] || 0) + 1;
     return `<p><a href="${rule.widget}">${rule.widget}</a></p>`;
@@ -738,6 +779,8 @@ const doc =
 // Load one source file and return its transformed EDS document.
 function transformFile(srcFile, lang) {
   currentLang = lang || (/^\/?fr(\/|$|\.)/.test(srcFile.split(/[\\/]/).slice(-3).join("/")) ? "fr" : "en");
+  const mm = srcFile.replace(/\\/g, "/").match(/\/((?:en|fr)\/.*\.html?)$/i);
+  currentPageAbs = mm ? "/" + mm[1] : `/${currentLang}/index.html`;
   $ = cheerio.load(fs.readFileSync(srcFile, "utf8"), { decodeEntities: false });
   return transformDoc();
 }
