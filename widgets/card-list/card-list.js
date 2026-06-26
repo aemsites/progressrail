@@ -37,7 +37,7 @@ async function loadIndex(lang) {
   return Array.isArray(json.data) ? json.data : [];
 }
 
-function buildCardRow(item) {
+function buildCardRow(item, showDescription) {
   const row = document.createElement('div');
 
   if (item.image) {
@@ -56,7 +56,7 @@ function buildCardRow(item) {
     heading.append(link);
     bodyCell.append(heading);
   }
-  if (item.description) {
+  if (showDescription && item.description) {
     const p = document.createElement('p');
     p.textContent = item.description;
     bodyCell.append(p);
@@ -69,6 +69,7 @@ function buildCardRow(item) {
 export default async function decorate(widget) {
   const lang = getLocale();
   const rootParam = widget.dataset.root;
+  const showDescription = widget.dataset.description !== 'false';
 
   const parentPath = resolveRoot(rootParam, lang);
   const index = await loadIndex(lang);
@@ -80,7 +81,7 @@ export default async function decorate(widget) {
   cardsBlock.classList.add('cards');
   children.forEach((item) => {
     const normalized = { ...item, path: item.path || item.url || '' };
-    cardsBlock.append(buildCardRow(normalized));
+    cardsBlock.append(buildCardRow(normalized, showDescription));
   });
 
   const container = widget.querySelector('.card-list-cards');

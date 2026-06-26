@@ -128,8 +128,8 @@ function heroBlock($t) {
   const cta = teaserCTA($t);
   const ctaHtml = cta && cta.text
     ? `<p><a href="${cta.href}"><em><strong>${cta.text}</strong></em></a></p>` : "";
-  // two-cell model: text (heading + CTA) then image (matches current DA hero)
-  return `<div class="hero"><div><div><h1>${h}</h1>${ctaHtml}</div><div>${pic(src, alt)}</div></div></div>`;
+  // two-cell model: text (heading + body + CTA) then image (matches current DA hero)
+  return `<div class="hero"><div><div><h1>${h}</h1>${parasHtml(teaserParas($t))}${ctaHtml}</div><div>${pic(src, alt)}</div></div></div>`;
 }
 
 function bannerBlock($t) {
@@ -294,9 +294,10 @@ function defaultContent($el, type) {
 }
 
 function metadataBlock() {
-  let title = ($('meta[property="og:title"]').attr("content") || $("title").text() || "").trim();
+  // Prefer <title> over og:title, and drop the "ProgressRail | " site-name prefix.
+  let title = ($("title").text() || $('meta[property="og:title"]').attr("content") || "").trim();
   const bar = title.indexOf("|");
-  if (bar > -1 && !$('meta[property="og:title"]').attr("content")) title = title.slice(bar + 1).trim();
+  if (bar > -1) title = title.slice(bar + 1).trim();
   const desc = ($('meta[name="description"]').attr("content") || "").trim();
   return (
     `<div class="metadata">` +
@@ -538,7 +539,11 @@ function cardListWidgetUrl(item) {
     else if (itemdir === dir(currentPageAbs)) root = "parent";                         // siblings
     else root = ("/" + kebabPath(itemdir.replace(/^\//, ""))).replace(/^\/(en|fr)/, ""); // explicit
   }
-  return root === undefined ? CARD_LIST_WIDGET : `${CARD_LIST_WIDGET}?root=${root}`;
+  const params = [];
+  if (root !== undefined) params.push(`root=${root}`);
+  // showDescription=false -> title-only navigation tiles (default is cards-with-text).
+  if (($L.find("#showDescription").attr("value") || "").toLowerCase() === "false") params.push("description=false");
+  return params.length ? `${CARD_LIST_WIDGET}?${params.join("&")}` : CARD_LIST_WIDGET;
 }
 let currentLang = "en";       // set per file by transformFile()
 let currentPageAbs = "/en/index.html"; // source path of the page being transformed
@@ -766,6 +771,17 @@ function stripEmptyRows(html) {
   // presentational <span class="..."> shouldn't pass through to EDS content — unwrap them
   $$("span[class]").toArray().forEach((s) => { const $s = $$(s); $s.replaceWith($s.contents()); });
   $$("a[target]").removeAttr("target"); // drop target attributes from links
+  // Remove "back to top" links (EDS auto-blocks #top anchors). Leave the jump-nav.
+  $$("a").toArray().forEach((a) => {
+    const $a = $$(a);
+    if ($a.closest(".jump-nav").length) return;
+    const href = ($a.attr("href") || "").trim().toLowerCase();
+    const txt = $a.text().replace(/\s+/g, " ").trim().toLowerCase();
+    if (href !== "#top" && txt !== "back to top") return;
+    const $w = $a.closest("h1,h2,h3,h4,h5,h6,p");
+    if ($w.length && $w.text().replace(/\s+/g, " ").trim().toLowerCase() === txt) $w.remove();
+    else $a.remove();
+  });
   return $$("body").html();
 }
 mainInner = stripEmptyRows(mainInner);
