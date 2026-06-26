@@ -1,7 +1,7 @@
 div.jump-nav-container {
   position: sticky;
   top: 0;
-  z-index: 2;
+  z-index: 3;
   margin: 0;
 }
 
@@ -93,3 +93,21 @@ div.jump-nav-container {
     order: 0;
   }
 }
+
+:root {
+  /* jump nav height */
+  --jump-nav-height: 103px;
+}
+
+@media (width >= 900px) {
+  :root {
+    --jump-nav-height: 68px;
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--jump-nav-height) + var(--space-m));
+}
+
+

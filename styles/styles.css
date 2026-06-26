@@ -508,3 +508,29 @@ main > .section.dark:has(+ .section.dark) {
     padding: var(--space-xl) 0;
   }
 }
+
+/* default content heading — matches hero & columns */
+.default-content-wrapper > h1::after,
+.default-content-wrapper > h2::after,
+.default-content-wrapper > h3::after,
+.default-content-wrapper > h4::after,
+.default-content-wrapper > h5::after,
+.default-content-wrapper > h6::after {
+  content: '';
+  display: block;
+  height: 5px;
+  width: 40px;
+  margin-top: var(--space-s);
+  background-color: var(--color-brand);
+}
+
+@media (width >= 900px) {
+  .default-content-wrapper h1 {
+    font-size: 3.375rem;
+  }
+}
+
+.default-content-wrapper p {
+  max-width: 1070px;
+  margin: 0 auto;
+}

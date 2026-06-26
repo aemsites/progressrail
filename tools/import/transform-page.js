@@ -731,7 +731,11 @@ for (const item of comps) {
     case "list-links": cur().items.push(listBlock($el, "links")); break;
     case "list-detailed": cur().items.push(listBlock($el, "detailed")); break;
     case "list-product": cur().items.push(listBlock($el, "product")); break;
-    case "jump-nav": cur().items.push(jumpNavBlock($el)); break;
+    case "jump-nav": // jump-nav always stands alone in its own section
+      if (cur().items.length || cur().id || cur().style) sections.push(newSection());
+      cur().items.push(jumpNavBlock($el));
+      sections.push(newSection());
+      break;
     case "title": { const c = defaultContent($el, "title"); if (c) cur().items.push(c); break; }
     case "text": { const c = defaultContent($el, "text"); if (c) cur().items.push(c); break; }
     case "media": { const c = mediaContent($el); if (c) cur().items.push(c); break; }

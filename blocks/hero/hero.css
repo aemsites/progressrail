@@ -2,6 +2,11 @@ div.hero-container:not(.teaser) {
   margin-top: 0;
 }
 
+main .section:first-child:is(.hero-container) {
+  margin-bottom: 0;
+}
+
+
 .hero-container:not(.teaser) .hero-wrapper {
   max-width: unset;
   padding: 0;

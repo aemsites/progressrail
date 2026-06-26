@@ -1,6 +1,6 @@
 .search-suggestions-anchor {
   position: relative;
-  z-index: 3;
+  z-index: 4;
 }
 
 .search.suggestions {
@@ -8,7 +8,7 @@
   top: calc(100% + 4px);
   left: 0;
   right: 0;
-  z-index: 2;
+  z-index: 4;
   max-height: calc(100dvh - var(--nav-height));
   overflow: hidden auto;
   border: 1px solid var(--color-border);
