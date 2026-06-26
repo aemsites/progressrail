@@ -24,12 +24,18 @@ function walk(dir, acc = []) {
 }
 
 let filesChanged = 0, occurrences = 0;
-const RE = /\b(src|srcset)="http:\/\//gi;
+// Match any http/https scheme (any case, e.g. stray "httpS://") in an image
+// attribute and force it to canonical lowercase https://.
+const RE = /\b(src|srcset)="https?:\/\//gi;
 
 for (const file of walk(REPO)) {
   const orig = fs.readFileSync(file, "utf8");
   let n = 0;
-  const out = orig.replace(RE, (_m, attr) => { n++; return `${attr}="https://`; });
+  const out = orig.replace(RE, (m, attr) => {
+    const fixed = `${attr}="https://`;
+    if (m === fixed) return m;          // already canonical, leave as-is
+    n++; return fixed;
+  });
   if (n > 0) { fs.writeFileSync(file, out); filesChanged++; occurrences += n; }
 }
-console.log(`http:// -> https:// image sources: ${occurrences} in ${filesChanged} file(s)`);
+console.log(`image sources normalized to https://: ${occurrences} in ${filesChanged} file(s)`);

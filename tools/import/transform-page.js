@@ -66,6 +66,8 @@ const https = (u) => (u || "").replace(/^http:\/\//, "https://");
 function daSerialize(html) {
   // Drop every non-breaking space (entity or literal char) -> regular space.
   html = html.replace(/&nbsp;|&#xa0;|&#160;| /gi, " ");
+  // Normalize the URL scheme to lowercase (source has stray "httpS://").
+  html = html.replace(/\bhttp(s)?:\/\//gi, (_m, s) => (s ? "https" : "http") + "://");
   // Use &#x26; for ampersands inside attribute values (e.g. alt="News &#x26; Events").
   return html.replace(/="[^"]*"/g, (m) => m.replace(/&amp;/g, "&#x26;"));
 }
