@@ -422,7 +422,7 @@ function mediaContent($mm) {
         // a custom poster is stored as data-imageid (not the youtube auto-thumb)
         let poster = ($s.find("[data-imageid]").attr("data-imageid") || "").trim();
         if (!/^(?:https?:)?\/\//.test(poster) || /youtube|ytimg/.test(poster)) poster = "";
-        items.push({ video: ytid, poster });
+        items.push({ video: ytid, poster, cap: slideCaption($s) });
       }
       continue;
     }
@@ -433,14 +433,20 @@ function mediaContent($mm) {
       items.push({ src, alt: $s.find("img").first().attr("alt") || "", cap: slideCaption($s) });
     }
   }
-  const render = (it) => it.video
-    ? `${it.poster ? pic(it.poster) : ""}<p><a href="https://www.youtube.com/watch?v=${it.video}">https://www.youtube.com/watch?v=${it.video}</a></p>`
-    : `${pic(it.src, it.alt)}${it.cap ? `<p>${it.cap}</p>` : ""}`;
+  const render = (it, inCarousel) => {
+    if (it.video) {
+      // poster: a custom image if set, else (in a carousel) the YouTube thumbnail
+      // (maxres), which gives slides something to show while the embed loads.
+      const poster = it.poster || (inCarousel ? `https://i.ytimg.com/vi/${it.video}/maxresdefault.jpg` : "");
+      return `${poster ? pic(poster) : ""}<p><a href="https://www.youtube.com/watch?v=${it.video}">https://www.youtube.com/watch?v=${it.video}</a></p>${it.cap ? `<p>${it.cap}</p>` : ""}`;
+    }
+    return `${pic(it.src, it.alt)}${it.cap ? `<p>${it.cap}</p>` : ""}`;
+  };
   if (items.length > 1) {
     // gallery (images and/or videos) -> carousel (slides), one slide per row
-    return `<div class="carousel slides">${items.map((it) => `<div><div>${render(it)}</div></div>`).join("")}</div>`;
+    return `<div class="carousel slides">${items.map((it) => `<div><div>${render(it, true)}</div></div>`).join("")}</div>`;
   }
-  return items.length ? render(items[0]) : "";
+  return items.length ? render(items[0], false) : "";
 }
 
 // ---- walk top-level components in document order ----

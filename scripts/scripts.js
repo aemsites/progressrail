@@ -128,7 +128,7 @@ function isYouTubeHref(href) {
  * Turns standalone YouTube links into video blocks.
  * @param {Element} main The container element
  */
-function buildVideoAutoBlocks(main) {
+export function buildVideoAutoBlocks(main) {
   [...main.querySelectorAll('a[href]')]
     .filter((a) => isYouTubeHref(a.href) && !a.closest('.video'))
     .forEach((link) => {
