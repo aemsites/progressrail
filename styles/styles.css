@@ -79,6 +79,7 @@
   /* layout */
   --nav-height: 180px;
   --site-width: 1200px;
+  --content-width: 1070px;
 
   /* border radii */
   --radius-s: 4px;
@@ -210,6 +211,7 @@ h4:first-child,
 h5:first-child,
 h6:first-child,
 p:first-child,
+p.button-wrapper:first-child,
 dl:first-child,
 ol:first-child,
 ul:first-child,
@@ -225,12 +227,34 @@ h4:last-child,
 h5:last-child,
 h6:last-child,
 p:last-child,
+p.button-wrapper:last-child,
 dl:last-child,
 ol:last-child,
 ul:last-child,
 pre:last-child,
 blockquote:last-child {
   margin-bottom: 0;
+}
+
+/* default content heading — matches hero & columns */
+.default-content-wrapper > h1::after,
+.default-content-wrapper > h2::after,
+.default-content-wrapper > h3::after,
+.default-content-wrapper > h4::after,
+.default-content-wrapper > h5::after,
+.default-content-wrapper > h6::after {
+  content: '';
+  display: block;
+  height: 5px;
+  width: 40px;
+  margin-top: var(--space-s);
+  background-color: var(--color-brand);
+}
+
+@media (width >= 900px) {
+  .default-content-wrapper h1 {
+    font-size: 3.375rem;
+  }
 }
 
 /* IMAGES & ICONS */
@@ -301,6 +325,7 @@ button {
 
 /* BUTTONS */
 
+/* stylelint-disable-next-line no-descending-specificity */
 p.button-wrapper {
   display: flex;
   flex-wrap: wrap;
@@ -440,6 +465,10 @@ main > .section > [class*="-wrapper"] + [class*="-wrapper"] {
   margin-top: var(--space-l);
 }
 
+main > .section > .default-content-wrapper {
+  max-width: var(--content-width);
+}
+
 main > .section > .default-content-wrapper + [class*="-wrapper"] {
   margin-top: 1.2em;
 }
@@ -507,30 +536,4 @@ main > .section.dark:has(+ .section.dark) {
   main .section.dark {
     padding: var(--space-xl) 0;
   }
-}
-
-/* default content heading — matches hero & columns */
-.default-content-wrapper > h1::after,
-.default-content-wrapper > h2::after,
-.default-content-wrapper > h3::after,
-.default-content-wrapper > h4::after,
-.default-content-wrapper > h5::after,
-.default-content-wrapper > h6::after {
-  content: '';
-  display: block;
-  height: 5px;
-  width: 40px;
-  margin-top: var(--space-s);
-  background-color: var(--color-brand);
-}
-
-@media (width >= 900px) {
-  .default-content-wrapper h1 {
-    font-size: 3.375rem;
-  }
-}
-
-.default-content-wrapper p {
-  max-width: 1070px;
-  margin: 0 auto;
 }
