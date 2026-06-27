@@ -153,24 +153,13 @@ function buildVideoAutoBlocks(main) {
  * @param {Element} main The container element
  */
 function buildFragmentAutoBlocks(main) {
-  const fragments = [...main.querySelectorAll('a[href*="/fragments/"]')].filter((f) => !f.closest('.fragment'));
-  if (!fragments.length) return;
-  // hide containers immediately so raw links never flash before replacement
-  fragments.forEach((f) => { f.parentElement.style.visibility = 'hidden'; });
-  // eslint-disable-next-line import/no-cycle
-  import('../blocks/fragment/fragment.js').then(({ loadFragment }) => {
-    fragments.forEach(async (fragment) => {
-      try {
-        const { pathname } = new URL(fragment.href);
-        const frag = await loadFragment(pathname);
-        fragment.parentElement.replaceWith(...frag.children);
-      } catch (error) {
-        fragment.parentElement.style.visibility = '';
-        // eslint-disable-next-line no-console
-        console.error('Fragment loading failed', error);
-      }
+  [...main.querySelectorAll('a[href*="/fragments/"]')]
+    .filter((f) => !f.closest('.fragment'))
+    .forEach((link) => {
+      const fragmentBlock = buildBlock('fragment', { elems: [link.cloneNode(true)] });
+      const p = link.closest('p');
+      (p || link).replaceWith(fragmentBlock);
     });
-  });
 }
 
 /**
