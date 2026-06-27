@@ -18,6 +18,9 @@ main .section:first-child:is(.hero-container) {
   position: relative;
   overflow: hidden;
   min-height: 350px;
+}
+
+.hero:not(.teaser) {
   border-bottom: 1px solid var(--color-border);
 }
 
