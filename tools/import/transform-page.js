@@ -462,13 +462,13 @@ function gridWidth($el) {
 
 // An image-multimedia paired with an adjacent sized text becomes a columns block:
 //   image side  = DOM order (image-first -> left, text-first -> right)
-//   variant     = equal widths -> regular columns; unequal -> columns (narrow)
+//   variant     = equal widths -> regular columns; unequal -> columns (portrait)
 function columnsPairBlock($img, $text, imgFirst, variant) {
   const src = mediaImageSrc($img);
   const alt = $img.find("img").first().attr("alt") || "";
   const imgCell = `<div>${pic(src, alt)}</div>`;
   const textCell = `<div>${cleanRte($text.find(".cmp-text").first()) || cleanRte($text)}</div>`;
-  const cls = variant === "narrow" ? "columns narrow" : "columns";
+  const cls = variant === "portrait" ? "columns portrait" : "columns";
   const row = imgFirst ? `${imgCell}${textCell}` : `${textCell}${imgCell}`;
   return `<div class="${cls}"><div>${row}</div></div>`;
 }
@@ -671,14 +671,14 @@ for (let i = 0; i < raw.length; i++) {
       // image first -> image on the left
       if (next && next.type === "text" && gridWidth(next.$el) < 12 && !consumed.has(i + 1)) {
         const wT = gridWidth(next.$el);
-        comps.push({ type: "columns-pair", $img: c.$el, $text: next.$el, imgFirst: true, variant: wImg === wT ? "regular" : "narrow", anchorId: c.anchorId });
+        comps.push({ type: "columns-pair", $img: c.$el, $text: next.$el, imgFirst: true, variant: wImg === wT ? "regular" : "portrait", anchorId: c.anchorId });
         consumed.add(i + 1);
         continue;
       }
       // text first -> image on the right (replace the already-pushed text)
       if (prev && prev.type === "text" && gridWidth(prev.$el) < 12 && comps.length && comps[comps.length - 1] === prev) {
         const wT = gridWidth(prev.$el);
-        comps[comps.length - 1] = { type: "columns-pair", $img: c.$el, $text: prev.$el, imgFirst: false, variant: wImg === wT ? "regular" : "narrow", anchorId: prev.anchorId };
+        comps[comps.length - 1] = { type: "columns-pair", $img: c.$el, $text: prev.$el, imgFirst: false, variant: wImg === wT ? "regular" : "portrait", anchorId: prev.anchorId };
         continue;
       }
     }
