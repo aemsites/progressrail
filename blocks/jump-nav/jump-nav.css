@@ -114,10 +114,3 @@ div.jump-nav-container {
     --jump-nav-height: 68px;
   }
 }
-
-html {
-  scroll-behavior: smooth;
-  scroll-padding-top: calc(var(--jump-nav-height) + var(--space-m));
-}
-
-
