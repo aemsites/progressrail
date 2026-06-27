@@ -155,6 +155,8 @@ function buildVideoAutoBlocks(main) {
 function buildFragmentAutoBlocks(main) {
   const fragments = [...main.querySelectorAll('a[href*="/fragments/"]')].filter((f) => !f.closest('.fragment'));
   if (!fragments.length) return;
+  // hide containers immediately so raw links never flash before replacement
+  fragments.forEach((f) => { f.parentElement.style.visibility = 'hidden'; });
   // eslint-disable-next-line import/no-cycle
   import('../blocks/fragment/fragment.js').then(({ loadFragment }) => {
     fragments.forEach(async (fragment) => {
@@ -163,6 +165,7 @@ function buildFragmentAutoBlocks(main) {
         const frag = await loadFragment(pathname);
         fragment.parentElement.replaceWith(...frag.children);
       } catch (error) {
+        fragment.parentElement.style.visibility = '';
         // eslint-disable-next-line no-console
         console.error('Fragment loading failed', error);
       }
