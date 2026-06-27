@@ -103,14 +103,3 @@ div.jump-nav-container {
     order: 0;
   }
 }
-
-:root {
-  /* jump nav height */
-  --jump-nav-height: 103px;
-}
-
-@media (width >= 900px) {
-  :root {
-    --jump-nav-height: 68px;
-  }
-}
