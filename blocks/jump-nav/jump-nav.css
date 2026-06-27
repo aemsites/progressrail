@@ -90,16 +90,17 @@ div.jump-nav-container {
   opacity: 1;
 }
 
-.jump-nav .button-wrapper {
+.jump-nav p.button-wrapper {
   display: flex;
   flex-shrink: 0;
   align-items: center;
   justify-content: safe center;
   order: -1;
+  margin: 1.2em 0;
 }
 
 @media (width >= 900px) {
-  .jump-nav .button-wrapper {
+  .jump-nav p.button-wrapper {
     order: 0;
   }
 }
