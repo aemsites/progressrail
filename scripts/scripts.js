@@ -78,6 +78,15 @@ function appendPressReleaseWidgetLink(main) {
 }
 
 /**
+ * Builds template-specific auto blocks (page main only).
+ * @param {Element} main The container element
+ */
+function buildTemplateAutoBlocks(main) {
+  if (!isPageMain(main)) return;
+  appendPressReleaseWidgetLink(main);
+}
+
+/**
  * Turns `/widgets/...` links into widget blocks.
  * @param {Element} main The container element
  */
@@ -102,36 +111,63 @@ function buildWidgetAutoBlocks(main) {
 }
 
 /**
- * Replaces standalone .mp4 links with native video elements.
- * @param {Element} main The container element
+ * Whether a URL points at a YouTube video page.
+ * @param {string} href - Link href
+ * @returns {boolean}
  */
-function decorateVideos(main) {
-  main.querySelectorAll('a[href$=".mp4"]').forEach((link) => {
-    const video = document.createElement('video');
-    video.src = link.href;
-    video.controls = true;
-    video.setAttribute('playsinline', '');
-    const p = link.closest('p');
-    if (
-      p
-      && p.querySelectorAll('a[href]').length === 1
-      && p.querySelector('a[href]') === link
-      && p.textContent.trim() === link.textContent.trim()
-    ) {
-      p.replaceWith(video);
-    } else {
-      link.replaceWith(video);
-    }
-  });
+function isYouTubeHref(href) {
+  try {
+    const { hostname } = new URL(href);
+    return hostname === 'youtu.be' || hostname.endsWith('youtube.com');
+  } catch {
+    return false;
+  }
 }
 
 /**
- * Builds template-specific auto blocks (page main only).
+ * Turns standalone YouTube links into video blocks.
  * @param {Element} main The container element
  */
-function buildTemplateAutoBlocks(main) {
-  if (!isPageMain(main)) return;
-  appendPressReleaseWidgetLink(main);
+function buildVideoAutoBlocks(main) {
+  [...main.querySelectorAll('a[href]')]
+    .filter((a) => isYouTubeHref(a.href) && !a.closest('.video'))
+    .forEach((link) => {
+      const newLink = link.cloneNode(true);
+      const videoBlock = buildBlock('video', { elems: [newLink] });
+      const p = link.closest('p');
+      if (
+        p
+        && p.querySelectorAll('a[href').length === 1
+        && p.querySelector('a[href') === link
+        && p.textContent.trim() === link.textContent.trim()
+      ) {
+        p.replaceWith(videoBlock);
+      } else {
+        link.replaceWith(videoBlock);
+      }
+    });
+}
+
+/**
+ * Inlines /fragments/ links by fetching and replacing them with their content.
+ * @param {Element} main The container element
+ */
+function buildFragmentAutoBlocks(main) {
+  const fragments = [...main.querySelectorAll('a[href*="/fragments/"]')].filter((f) => !f.closest('.fragment'));
+  if (!fragments.length) return;
+  // eslint-disable-next-line import/no-cycle
+  import('../blocks/fragment/fragment.js').then(({ loadFragment }) => {
+    fragments.forEach(async (fragment) => {
+      try {
+        const { pathname } = new URL(fragment.href);
+        const frag = await loadFragment(pathname);
+        fragment.parentElement.replaceWith(...frag.children);
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('Fragment loading failed', error);
+      }
+    });
+  });
 }
 
 /**
@@ -140,25 +176,10 @@ function buildTemplateAutoBlocks(main) {
  */
 function buildAutoBlocks(main) {
   try {
-    // auto load `*/fragments/*` references
-    const fragments = [...main.querySelectorAll('a[href*="/fragments/"]')].filter((f) => !f.closest('.fragment'));
-    if (fragments.length > 0) {
-      // eslint-disable-next-line import/no-cycle
-      import('../blocks/fragment/fragment.js').then(({ loadFragment }) => {
-        fragments.forEach(async (fragment) => {
-          try {
-            const { pathname } = new URL(fragment.href);
-            const frag = await loadFragment(pathname);
-            fragment.parentElement.replaceWith(...frag.children);
-          } catch (error) {
-            // eslint-disable-next-line no-console
-            console.error('Fragment loading failed', error);
-          }
-        });
-      });
-    }
     buildTemplateAutoBlocks(main);
     buildWidgetAutoBlocks(main);
+    buildVideoAutoBlocks(main);
+    buildFragmentAutoBlocks(main);
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Auto Blocking failed', error);
@@ -214,6 +235,30 @@ function decorateButtons(main) {
 }
 
 /**
+ * Replaces standalone .mp4 links with native video elements.
+ * @param {Element} main The container element
+ */
+function decorateVideos(main) {
+  main.querySelectorAll('a[href$=".mp4"]').forEach((link) => {
+    const video = document.createElement('video');
+    video.src = link.href;
+    video.controls = true;
+    video.setAttribute('playsinline', '');
+    const p = link.closest('p');
+    if (
+      p
+      && p.querySelectorAll('a[href]').length === 1
+      && p.querySelector('a[href]') === link
+      && p.textContent.trim() === link.textContent.trim()
+    ) {
+      p.replaceWith(video);
+    } else {
+      link.replaceWith(video);
+    }
+  });
+}
+
+/**
  * Sets target and rel on links whose hostname differs from the current page.
  * @param {Element} container - The element to search for links within
  */
@@ -233,9 +278,9 @@ export function decorateExternalLinks(container) {
 // eslint-disable-next-line import/prefer-default-export
 export function decorateMain(main) {
   buildAutoBlocks(main);
-  decorateIcons(main);
   decorateSections(main);
   decorateBlocks(main);
+  decorateIcons(main);
   decorateButtons(main);
   decorateVideos(main);
 }
