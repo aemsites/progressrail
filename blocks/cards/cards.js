@@ -1,19 +1,6 @@
 import { createOptimizedPicture, decorateIcons } from '../../scripts/aem.js';
 
 /**
- * Returns the largest factor of the block's row count between 1 and 6.
- * @param {Element} block The cards block element
- * @returns {number} Grid column count to apply as a cols-N class
- */
-function getGridFactor(block) {
-  const rows = block.children.length;
-  for (let n = 6; n >= 2; n -= 1) {
-    if (rows % n === 0) return n;
-  }
-  return rows === 1 ? 1 : 3;
-}
-
-/**
  * Moves a trailing CTA out of .body-wrapper into a card footer.
  * @param {HTMLElement} card The card <li> element being decorated
  */
@@ -55,10 +42,6 @@ function optimizeImages(block) {
 }
 
 export default function decorate(block) {
-  if (![...block.classList].some((c) => c.startsWith('cols-'))) {
-    block.classList.add(`cols-${getGridFactor(block)}`);
-  }
-
   const ul = document.createElement('ul');
   [...block.children].forEach((card) => {
     const li = document.createElement('li');
