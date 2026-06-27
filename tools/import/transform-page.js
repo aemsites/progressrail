@@ -177,18 +177,21 @@ function listCardsBlock($list) {
   return `<div class="cards">${rows.join("")}</div>`;
 }
 
+// Lowercase in-page anchor hrefs (#Foo -> #foo) to match the lowercased section ids.
+const anchorHref = (href) => /^#/.test(href || "") ? href.toLowerCase() : href;
+
 function jumpNavBlock($nav) {
   const links = [];
   $nav.find(".desktop-view-secondary-nav nav a, nav a").each((_, a) => {
     const $a = $(a);
-    links.push(`<li><a href="${https($a.attr("href"))}">${$a.text().trim()}</a></li>`);
+    links.push(`<li><a href="${anchorHref(https($a.attr("href")))}">${$a.text().trim()}</a></li>`);
     if (links.length >= 8) return false;
   });
   // de-dupe (mobile + desktop repeat the same links)
   const uniq = [...new Map(links.map((l) => [l, l])).keys()];
   const btn = $nav.find("a.button").first();
   const btnHtml = btn.length
-    ? `<p><a href="${https(btn.attr("href"))}"><strong>${btn.text().trim()}</strong></a></p>` : "";
+    ? `<p><a href="${anchorHref(https(btn.attr("href")))}"><strong>${btn.text().trim()}</strong></a></p>` : "";
   return `<div class="jump-nav"><div><div><ul>${uniq.join("")}</ul>${btnHtml}</div></div></div>`;
 }
 
@@ -334,9 +337,12 @@ function metadataBlock() {
 }
 
 // text cell shared by banner / columns / carousel (heading + paragraphs + CTA)
-function bannerCell(h, paras, cta) {
+function bannerCell(h, paras, cta, emCta) {
   const parts = [`<h2>${h}</h2>`, parasHtml(paras)];
-  if (cta && cta.text) parts.push(`<p><a href="${cta.href}"><strong>${cta.text}</strong></a></p>`);
+  if (cta && cta.text) {
+    const label = emCta ? `<em><strong>${cta.text}</strong></em>` : `<strong>${cta.text}</strong>`;
+    parts.push(`<p><a href="${cta.href}">${label}</a></p>`);
+  }
   return parts.join("");
 }
 
@@ -362,7 +368,7 @@ function carouselBlock($car) {
     const h = $it.find(".teaserHeading, h1, h2, h3").first().text().trim();
     const cta = teaserCTA($it);
     const { src, alt } = firstImg($it);
-    rows.push(`<div><div>${bannerCell(h, teaserParas($it), cta)}</div><div>${pic(src, alt)}</div></div>`);
+    rows.push(`<div><div>${bannerCell(h, teaserParas($it), cta, true)}</div><div>${pic(src, alt)}</div></div>`);
   });
   return `<div class="carousel">${rows.join("")}</div>`;
 }
@@ -391,13 +397,14 @@ function slideCaption($s) {
   return $s.find("[class*=imedia__description]").first().text().replace(/\s+/g, " ").trim();
 }
 
-// Classify a multimedia component's slides into images (with captions) + videos,
-// then render: a multi-image gallery -> carousel block; a single image -> the
-// picture plus its caption as default content; videos -> plain YouTube links.
+// Collect a multimedia component's slides (images with captions, or videos) in
+// document order, then render: more than one slide -> a carousel (slides) block
+// (image or YouTube link per slide); a single image -> picture + caption; a
+// single video -> a plain YouTube link.
 function mediaContent($mm) {
   const slides = $mm.find(".multimedia__slide");
   const list = slides.length ? slides.toArray() : [$mm[0]];
-  const images = [], videos = [];
+  const items = [];
   const seen = new Set();
   for (const s of list) {
     const $s = $(s);
@@ -409,31 +416,31 @@ function mediaContent($mm) {
       const m = thumb && thumb.match(/\/vi\/([^/]+)\//);
       if (m) ytid = m[1];
     }
-    if (ytid) { if (!seen.has(ytid)) { seen.add(ytid); videos.push(ytid); } continue; }
+    if (ytid) {
+      if (!seen.has("v:" + ytid)) {
+        seen.add("v:" + ytid);
+        // a custom poster is stored as data-imageid (not the youtube auto-thumb)
+        let poster = ($s.find("[data-imageid]").attr("data-imageid") || "").trim();
+        if (!/^(?:https?:)?\/\//.test(poster) || /youtube|ytimg/.test(poster)) poster = "";
+        items.push({ video: ytid, poster });
+      }
+      continue;
+    }
     const src = $s.find("img").map((i, im) => $(im).attr("src")).get()
       .find((x) => x && !/[?&](cc-s|fmt=)/.test(x) && !/youtube|ytimg/.test(x));
-    if (src && !seen.has(src)) {
-      seen.add(src);
-      images.push({ src, alt: $s.find("img").first().attr("alt") || "", cap: slideCaption($s) });
+    if (src && !seen.has("i:" + src)) {
+      seen.add("i:" + src);
+      items.push({ src, alt: $s.find("img").first().attr("alt") || "", cap: slideCaption($s) });
     }
   }
-
-  const out = [];
-  if (images.length > 1) {
-    // gallery -> carousel: one slide per row (image + caption)
-    const rows = images.map((im) =>
-      `<div><div>${pic(im.src, im.alt)}${im.cap ? `<p>${im.cap}</p>` : ""}</div></div>`);
-    // image gallery -> carousel (slides); carousel--promo stays a plain carousel
-    out.push(`<div class="carousel slides">${rows.join("")}</div>`);
-  } else if (images.length === 1) {
-    const im = images[0];
-    out.push(pic(im.src, im.alt));
-    if (im.cap) out.push(`<p>${im.cap}</p>`);
+  const render = (it) => it.video
+    ? `${it.poster ? pic(it.poster) : ""}<p><a href="https://www.youtube.com/watch?v=${it.video}">https://www.youtube.com/watch?v=${it.video}</a></p>`
+    : `${pic(it.src, it.alt)}${it.cap ? `<p>${it.cap}</p>` : ""}`;
+  if (items.length > 1) {
+    // gallery (images and/or videos) -> carousel (slides), one slide per row
+    return `<div class="carousel slides">${items.map((it) => `<div><div>${render(it)}</div></div>`).join("")}</div>`;
   }
-  for (const id of videos) {
-    out.push(`<p><a href="https://www.youtube.com/watch?v=${id}">https://www.youtube.com/watch?v=${id}</a></p>`);
-  }
-  return out.join("");
+  return items.length ? render(items[0]) : "";
 }
 
 // ---- walk top-level components in document order ----
@@ -646,6 +653,7 @@ function cleanEmbeds() {
   $(".teaser").each((_, el) => {
     const $t = $(el);
     if (!$t.parents(selJoin).length) return;
+    if ($t.closest(".carousel").length) return; // carouselBlock renders its own teasers
     const parts = [];
     const h = $t.find(".teaserHeading").first().text().trim();
     if (h) parts.push(`<h3>${h}</h3>`);
@@ -676,7 +684,7 @@ cleanEmbeds();
 // section-metadata carries an `id`, so the jump-nav links resolve in EDS.
 const navIds = new Set();
 $(".secondary-navigation a[href^='#'], .jump-nav a[href^='#']").each((_, a) => {
-  const id = (($(a).attr("href") || "").slice(1)).trim();
+  const id = (($(a).attr("href") || "").slice(1)).trim().toLowerCase(); // ids are lowercased
   if (id && id !== "top" && id !== "mainContent") navIds.add(id);
 });
 const anchorOf = new Map(); // top-level component element -> id that starts its section
@@ -684,8 +692,8 @@ if (navIds.size) {
   let pending = null;
   $("*").each((_, el) => {
     const $el = $(el);
-    const id = $el.attr("id");
-    if (id && navIds.has(id)) { pending = id; return; }    // an anchor marker
+    const id = ($el.attr("id") || "").toLowerCase();
+    if (id && navIds.has(id)) { pending = id; return; }    // an anchor marker (id lowercased)
     if (pending && $el.is(selJoin) && !$el.parents(selJoin).length) {
       anchorOf.set(el, pending); pending = null;             // the next top-level component
     }
@@ -850,6 +858,11 @@ function stripEmptyRows(html) {
   // presentational <span class="..."> shouldn't pass through to EDS content — unwrap them
   $$("span[class]").toArray().forEach((s) => { const $s = $$(s); $s.replaceWith($s.contents()); });
   $$("a[target]").removeAttr("target"); // drop target attributes from links
+  // Lowercase every in-page anchor href (#Foo -> #foo) to match lowercased section ids.
+  $$("a[href^='#']").each((_, a) => {
+    const $a = $$(a), h = $a.attr("href") || "";
+    if (/[A-Z]/.test(h)) $a.attr("href", h.toLowerCase());
+  });
   // Remove "back to top" links (EDS auto-blocks #top anchors). Leave the jump-nav.
   $$("a").toArray().forEach((a) => {
     const $a = $$(a);
