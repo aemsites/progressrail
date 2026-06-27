@@ -24,6 +24,29 @@ function optimizeImages(block) {
   });
 }
 
+/**
+ * Marks body-only blocks whose last column is links-only with `action` and `action-wrapper`.
+ * @param {Element} block The columns block element
+ */
+function detectAction(block) {
+  const rows = [...block.children];
+  if (!rows.length) return;
+  const matches = rows.every((row) => {
+    const cols = [...row.children];
+    if (cols.some((col) => col.classList.contains('media-wrapper'))) return false;
+    const last = cols[cols.length - 1];
+    return [...last.children].every(
+      (el) => el.tagName === 'P' && el.children.length === 1 && el.firstElementChild.tagName === 'A',
+    );
+  });
+  if (!matches) return;
+  block.classList.add('action');
+  rows.forEach((row) => {
+    const last = row.children[row.children.length - 1];
+    last.classList.replace('body-wrapper', 'action-wrapper');
+  });
+}
+
 /** @param {Element} block */
 export default function decorate(block) {
   [...block.children].forEach((row) => {
@@ -34,6 +57,8 @@ export default function decorate(block) {
     });
     if (row.querySelector('.media-wrapper')) row.dataset.row = 'media';
   });
+
+  detectAction(block);
 
   const colCount = getColCount(block);
   if (colCount && ![...block.classList].some((c) => c.startsWith('cols-'))) {
