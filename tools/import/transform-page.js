@@ -341,7 +341,7 @@ function carouselBlock($car) {
   return `<div class="carousel">${rows.join("")}</div>`;
 }
 
-// teaser--banner -> default content (heading/text/CTA) for a dedicated dark section
+// teaser--banner -> columns block (heading+text | CTA) for a dedicated dark section
 function bannerSectionContent($t) {
   const h = $t.find(".teaserHeading").first().text().trim();
   const seen = new Set();
@@ -351,9 +351,11 @@ function bannerSectionContent($t) {
     if (t && !/^\d{4}-\d{2}-\d{2}$/.test(t) && !seen.has(t)) { seen.add(t); ps.push(t); }
   });
   const cta = teaserCTA($t);
-  const parts = [`<h2>${h}</h2>`, ...ps.map((p) => `<p>${p}</p>`)];
-  if (cta && cta.text) parts.push(`<p><a href="${cta.href}">${cta.text}</a></p>`);
-  return parts.join("");
+  const textCol = [`<h2>${h}</h2>`, ...ps.map((p) => `<p>${p}</p>`)].join("");
+  if (cta && cta.text) {
+    return `<div class="columns"><div><div>${textCol}</div><div><p><a href="${cta.href}">${cta.text}</a></p></div></div></div>`;
+  }
+  return textCol;
 }
 
 // multimedia / media-youtube slider -> default content:
