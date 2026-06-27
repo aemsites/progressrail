@@ -1,0 +1,22 @@
+{
+  "en": {
+    "filterBy": "Filter By",
+    "applyFilters": "Apply Filters",
+    "region": "Region",
+    "trackGauge": "Track Gauge",
+    "tractionHorsepower": "Traction Horsepower",
+    "emissionsCertification": "Emissions Certification",
+    "axleLoad": "Axle Load",
+    "tractionSystem": "Traction System"
+  },
+  "fr": {
+    "filterBy": "Filtrer par",
+    "applyFilters": "Appliquer les filtres",
+    "region": "Région",
+    "trackGauge": "Écartement des rails",
+    "tractionHorsepower": "Puissance de traction",
+    "emissionsCertification": "Certification des émissions",
+    "axleLoad": "Charge par essieu",
+    "tractionSystem": "Système de traction"
+  }
+}

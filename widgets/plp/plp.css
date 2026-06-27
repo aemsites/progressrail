@@ -1,0 +1,133 @@
+.plp {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-l);
+}
+
+@media (width >= 900px) {
+  .plp {
+    flex-direction: row;
+  }
+}
+
+/* filters sidebar */
+.plp .plp-filters {
+  flex-shrink: 0;
+}
+
+.plp .plp-filters-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: var(--space-s) 0;
+  border-bottom: 1px solid var(--color-border);
+  font-family: var(--heading-font-family);
+  font-size: var(--heading-s);
+  font-weight: 700;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.plp .plp-filters-toggle::after {
+  content: '';
+  display: block;
+  height: 1em;
+  width: 1em;
+  background-color: currentcolor;
+  mask-image: url('/icons/filter.svg');
+  mask-repeat: no-repeat;
+  mask-size: contain;
+}
+
+.plp .plp-filters-panel {
+  display: none;
+}
+
+.plp .plp-filters-toggle[aria-expanded="true"] + .plp-filters-panel {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  overflow-y: auto;
+  padding: var(--space-m);
+  padding-bottom: calc(var(--space-m) + 60px);
+  background-color: var(--color-bg);
+}
+
+.plp .plp-apply {
+  position: fixed;
+  inset-inline: var(--space-m);
+  bottom: var(--space-m);
+  z-index: 101;
+  padding: var(--space-s);
+  border: 0;
+  background-color: var(--color-border);
+  font-family: var(--heading-font-family);
+  font-weight: 700;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+/* results */
+.plp .plp-results {
+  flex: 1;
+  min-width: 0;
+}
+
+/* facet groups */
+.plp .plp-facet {
+  border: 0;
+  border-bottom: 1px solid var(--color-border);
+  margin: 0;
+  padding: var(--space-s) 0;
+}
+
+.plp .plp-facet legend {
+  padding: 0;
+  font-family: var(--heading-font-family);
+  font-size: var(--heading-s);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.plp .plp-facet label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-100) 0;
+  cursor: pointer;
+}
+
+.plp .plp-facet input[type="checkbox"] {
+  width: 1em;
+  height: 1em;
+  margin: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 2px;
+  accent-color: var(--color-text);
+  cursor: pointer;
+  appearance: auto;
+}
+
+/* desktop */
+@media (width >= 900px) {
+  .plp .plp-filters {
+    width: 220px;
+  }
+
+  .plp .plp-filters-toggle::after {
+    display: none;
+  }
+
+  .plp .plp-filters-panel {
+    display: block;
+    position: static;
+    overflow: visible;
+    padding: 0;
+  }
+
+  .plp .plp-apply {
+    display: none;
+  }
+}

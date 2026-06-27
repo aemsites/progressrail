@@ -293,6 +293,24 @@ function defaultContent($el, type) {
   return html;
 }
 
+// "progress-rail" tag blob (Progress Rail^Category^Facet^Value | ...) -> one
+// metadata row per facet, multi-values comma-joined. Entity-encoded values
+// (e.g. "&gt;30 mT") are kept as-is, which is valid inside <p> text.
+function progressRailFacetRows() {
+  const raw = $('meta[name="progress-rail"]').attr("content") || "";
+  if (!raw) return "";
+  const order = [], vals = {};
+  for (const entry of raw.split("|")) {
+    const parts = entry.split("^").map((x) => x.trim()).filter(Boolean);
+    if (parts.length < 4) continue;
+    const facet = parts[2], value = parts.slice(3).join("^");
+    if (!vals[facet]) { vals[facet] = []; order.push(facet); }
+    if (!vals[facet].includes(value)) vals[facet].push(value);
+  }
+  return order.map((f) =>
+    `<div><div><p>${f}</p></div><div><p>${vals[f].join(", ")}</p></div></div>`).join("");
+}
+
 function metadataBlock() {
   // Prefer <title> over og:title, and drop the "ProgressRail | " site-name prefix.
   let title = ($("title").text() || $('meta[property="og:title"]').attr("content") || "").trim();
@@ -303,6 +321,7 @@ function metadataBlock() {
     `<div class="metadata">` +
     `<div><div><p>Title</p></div><div><p>${title}</p></div></div>` +
     `<div><div><p>Description</p></div><div><p>${desc}</p></div></div>` +
+    progressRailFacetRows() +
     `</div>`
   );
 }
@@ -504,6 +523,20 @@ const FRAGMENT_RULES = [
       if (!/^list-/.test(item.type)) return false;
       const t = listTargets(item.$el);
       return t.length >= 3 && t.every((x) => /\/PressReleases\/[^/]+\.html$/i.test(x));
+    },
+  },
+  {
+    // Widget: a "list children" component that renders populated facet filters is
+    // a product-listing page (PLP). Identified by rendered .filter__name options
+    // (the inert .list__filter-col wrapper is present on every list, so isn't the
+    // signal). Links to the PLP widget; no root param needed.
+    name: "plp",
+    widget: "https://main--progressrail--aemsites.aem.page/widgets/plp/plp.html",
+    match(item) {
+      if (!/^list/.test(item.type || "")) return false;
+      const $L = item.$el;
+      if (($L.find("#listFormValue").attr("value") || "").toLowerCase() !== "children") return false;
+      return $L.find(".filter__name").length > 0;
     },
   },
   {
