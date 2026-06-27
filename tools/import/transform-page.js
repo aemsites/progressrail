@@ -316,11 +316,18 @@ function metadataBlock() {
   let title = ($("title").text() || $('meta[property="og:title"]').attr("content") || "").trim();
   const bar = title.indexOf("|");
   if (bar > -1) title = title.slice(bar + 1).trim();
-  const desc = ($('meta[name="description"]').attr("content") || "").trim();
+  // Prefer og:description; fall back to the (often longer) name=description.
+  const desc = ($('meta[property="og:description"]').attr("content")
+    || $('meta[name="description"]').attr("content") || "").trim();
+  // og:image -> Image metadata (the curated social/preview image).
+  const ogImage = ($('meta[property="og:image"]').attr("content") || "").trim();
+  const imageRow = ogImage
+    ? `<div><div><p>Image</p></div><div>${pic(ogImage, title)}</div></div>` : "";
   return (
     `<div class="metadata">` +
     `<div><div><p>Title</p></div><div><p>${title}</p></div></div>` +
     `<div><div><p>Description</p></div><div><p>${desc}</p></div></div>` +
+    imageRow +
     progressRailFacetRows() +
     `</div>`
   );
