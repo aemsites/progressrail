@@ -531,6 +531,38 @@ main > .section.dark:has(+ .section.dark) {
   margin-bottom: 0;
 }
 
+main .section.dark a.button.primary,
+main .section.dark button.button.primary {
+  border-color: var(--color-bg);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+}
+
+main .section.dark a.button.primary:hover,
+main .section.dark a.button.primary:focus-visible,
+main .section.dark button.button.primary:hover,
+main .section.dark button.button.primary:focus-visible {
+  border-color: var(--color-bg-light);
+  background-color: var(--color-bg-light);
+  color: var(--color-muted);
+}
+
+main .section.dark a.button.secondary,
+main .section.dark button.button.secondary {
+  border-color: var(--color-bg);
+  background-color: transparent;
+  color: var(--color-bg);
+}
+
+main .section.dark a.button.secondary:hover,
+main .section.dark a.button.secondary:focus-visible,
+main .section.dark button.button.secondary:hover,
+main .section.dark button.button.secondary:focus-visible {
+  border-color: var(--color-bg-light);
+  background-color: transparent;
+  color: var(--color-bg-light);
+}
+
 @media (width >= 900px) {
   main .section.light,
   main .section.dark {
