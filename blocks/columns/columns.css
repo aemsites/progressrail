@@ -105,3 +105,19 @@
     grid-template-columns: 1fr 1fr;
   }
 }
+
+/* portrait variant */
+.columns.portrait .media-wrapper {
+  min-height: unset;
+  aspect-ratio: 2 / 3;
+}
+
+@media (width >= 600px) {
+  .columns.portrait [data-row="media"] {
+    display: flex;
+  }
+
+  .columns.portrait [data-row="media"] .media-wrapper {
+    max-width: 344px;
+  }
+}
