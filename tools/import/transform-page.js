@@ -401,7 +401,7 @@ function slideCaption($s) {
 // document order, then render: more than one slide -> a carousel (slides) block
 // (image or YouTube link per slide); a single image -> picture + caption; a
 // single video -> a plain YouTube link.
-function mediaContent($mm) {
+function mediaContent($mm, posterVideos) {
   const slides = $mm.find(".multimedia__slide");
   const list = slides.length ? slides.toArray() : [$mm[0]];
   const items = [];
@@ -437,7 +437,7 @@ function mediaContent($mm) {
     if (it.video) {
       // poster: a custom image if set, else (in a carousel) the YouTube thumbnail
       // (maxres), which gives slides something to show while the embed loads.
-      const poster = it.poster || (inCarousel ? `https://i.ytimg.com/vi/${it.video}/maxresdefault.jpg` : "");
+      const poster = it.poster || ((inCarousel || posterVideos) ? `https://i.ytimg.com/vi/${it.video}/maxresdefault.jpg` : "");
       return `${poster ? pic(poster) : ""}<p><a href="https://www.youtube.com/watch?v=${it.video}">https://www.youtube.com/watch?v=${it.video}</a></p>${it.cap ? `<p>${it.cap}</p>` : ""}`;
     }
     return `${pic(it.src, it.alt)}${it.cap ? `<p>${it.cap}</p>` : ""}`;
@@ -594,8 +594,12 @@ function cardListWidgetUrl(item) {
   }
   const params = [];
   if (root !== undefined) params.push(`root=${root}`);
-  // showDescription=false -> title-only navigation tiles (default is cards-with-text).
-  if (($L.find("#showDescription").attr("value") || "").toLowerCase() === "false") params.push("description=false");
+  // Title-only tiles (default is cards-with-text) when the list is the simple
+  // variant OR explicitly hides descriptions.
+  const cls = ($L.attr("class") || "").split(/\s+/);
+  const noDesc = cls.includes("list--simple")
+    || ($L.find("#showDescription").attr("value") || "").toLowerCase() === "false";
+  if (noDesc) params.push("description=false");
   return params.length ? `${CARD_LIST_WIDGET}?${params.join("&")}` : CARD_LIST_WIDGET;
 }
 let currentLang = "en";       // set per file by transformFile()
@@ -677,7 +681,7 @@ function cleanEmbeds() {
   $(".multimedia").each((_, el) => {
     const $mm = $(el);
     if (!$mm.parents(selJoin).length) return;
-    const repl = mediaContent($mm) || "";
+    const repl = mediaContent($mm, true) || ""; // nested videos get a poster, like carousel slides
     const $wrap = $mm.closest(".media-youtube");
     ($wrap.length ? $wrap : $mm).replaceWith(repl);
   });
