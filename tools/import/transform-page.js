@@ -937,9 +937,10 @@ function runBatch(sourceRoot, contentRoot) {
   const redirects = [];
   let ok = 0, skipPR = 0, skipProtected = 0, skipExcluded = 0, errs = [];
 
-  // Authored EDS files (homepage, nav/footer fragments, search) — never
-  // generated from the crawl. Excluded by default; pass --include-special to override.
-  const EXCLUDE_RE = /^(?:en|fr)\/(?:index|nav|footer|search)\.html$/;
+  // Authored EDS files (homepage, nav/footer fragments, search) plus the orphaned
+  // "right-rail" sidebar fragments (thin, unused, junk-titled pages that leaked into
+  // the sitemap) — never real content. Excluded by default; --include-special overrides.
+  const EXCLUDE_RE = /^(?:en|fr)\/(?:index|nav|footer|search)\.html$|\/right-rail\.html$/;
   const includeSpecial = process.argv.includes("--include-special");
 
   // Pages a human edited in DA (from reconcile.js) — never overwrite these.
@@ -981,7 +982,8 @@ function runBatch(sourceRoot, contentRoot) {
   if (fs.existsSync(redirectsPath)) sheet = JSON.parse(fs.readFileSync(redirectsPath, "utf8"));
   const existing = sheet.data || [];
   const seen = new Set(redirects.map((r) => r.Source));
-  const kept = existing.filter((r) => !seen.has(r.Source));
+  // Drop superseded rows, and purge any stale right-rail entries (now excluded).
+  const kept = existing.filter((r) => !seen.has(r.Source) && !/\/right-rail\.html$/i.test(r.Source));
   const merged = redirects.concat(kept).sort((a, b) => a.Source.localeCompare(b.Source));
   sheet.data = merged; sheet.total = merged.length; sheet.limit = merged.length; sheet.offset = 0;
   fs.writeFileSync(redirectsPath, JSON.stringify(sheet));
