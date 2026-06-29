@@ -204,14 +204,14 @@ function decorateButtons(main) {
     p.className = 'button-wrapper';
     a.className = 'button';
     if (strong && em) { // high-impact call-to-action
-      a.classList.add('cta');
+      a.classList.add('secondary');
       const outer = strong.contains(em) ? strong : em;
       outer.replaceWith(a);
     } else if (strong) {
-      a.classList.add('primary');
+      a.classList.add('cta');
       strong.replaceWith(a);
     } else {
-      a.classList.add('secondary');
+      a.classList.add('primary');
       em.replaceWith(a);
     }
   });
