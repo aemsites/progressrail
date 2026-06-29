@@ -127,7 +127,7 @@ function heroBlock($t) {
   const { src, alt } = firstImg($t);
   const cta = teaserCTA($t);
   const ctaHtml = cta && cta.text
-    ? `<p><a href="${cta.href}"><em><strong>${cta.text}</strong></em></a></p>` : "";
+    ? `<p><a href="${cta.href}"><strong>${cta.text}</strong></a></p>` : "";
   // two-cell model: text (heading + body + CTA) then image (matches current DA hero)
   return `<div class="hero"><div><div><h1>${h}</h1>${parasHtml(teaserParas($t))}${ctaHtml}</div><div>${pic(src, alt)}</div></div></div>`;
 }
@@ -137,7 +137,7 @@ function bannerBlock($t) {
   const { src, alt } = firstImg($t);
   const cta = teaserCTA($t);
   const ctaHtml = cta && cta.text
-    ? `<p><a href="${cta.href}"><em><strong>${cta.text}</strong></em></a></p>` : "";
+    ? `<p><a href="${cta.href}"><strong>${cta.text}</strong></a></p>` : "";
   // teaser--full-width is a hero (DA reclassified banner -> hero); keep h2 + body
   return `<div class="hero"><div><div><h2>${h}</h2>${parasHtml(teaserParas($t))}${ctaHtml}</div><div>${pic(src, alt)}</div></div></div>`;
 }
@@ -337,12 +337,9 @@ function metadataBlock() {
 }
 
 // text cell shared by banner / columns / carousel (heading + paragraphs + CTA)
-function bannerCell(h, paras, cta, emCta) {
+function bannerCell(h, paras, cta) {
   const parts = [`<h2>${h}</h2>`, parasHtml(paras)];
-  if (cta && cta.text) {
-    const label = emCta ? `<em><strong>${cta.text}</strong></em>` : `<strong>${cta.text}</strong>`;
-    parts.push(`<p><a href="${cta.href}">${label}</a></p>`);
-  }
+  if (cta && cta.text) parts.push(`<p><a href="${cta.href}"><strong>${cta.text}</strong></a></p>`);
   return parts.join("");
 }
 
@@ -368,7 +365,7 @@ function carouselBlock($car) {
     const h = $it.find(".teaserHeading, h1, h2, h3").first().text().trim();
     const cta = teaserCTA($it);
     const { src, alt } = firstImg($it);
-    rows.push(`<div><div>${bannerCell(h, teaserParas($it), cta, true)}</div><div>${pic(src, alt)}</div></div>`);
+    rows.push(`<div><div>${bannerCell(h, teaserParas($it), cta)}</div><div>${pic(src, alt)}</div></div>`);
   });
   return `<div class="carousel">${rows.join("")}</div>`;
 }
@@ -937,10 +934,11 @@ function runBatch(sourceRoot, contentRoot) {
   const redirects = [];
   let ok = 0, skipPR = 0, skipProtected = 0, skipExcluded = 0, errs = [];
 
-  // Authored EDS files (homepage, nav/footer fragments, search) plus the orphaned
-  // "right-rail" sidebar fragments (thin, unused, junk-titled pages that leaked into
-  // the sitemap) — never real content. Excluded by default; --include-special overrides.
-  const EXCLUDE_RE = /^(?:en|fr)\/(?:index|nav|footer|search)\.html$|\/right-rail\.html$/;
+  // Authored EDS files (homepage, nav/footer fragments, search), the orphaned
+  // "right-rail" sidebar fragments, and stray test/scratch pages (test-page,
+  // test-product/*, nishanthi folder) — never real content. Excluded by default;
+  // --include-special overrides.
+  const EXCLUDE_RE = /^(?:en|fr)\/(?:index|nav|footer|search)\.html$|\/right-rail\.html$|(?:^|\/)test-(?:page|product)(?:\.html$|\/)/;
   const includeSpecial = process.argv.includes("--include-special");
 
   // Pages a human edited in DA (from reconcile.js) — never overwrite these.
@@ -982,8 +980,10 @@ function runBatch(sourceRoot, contentRoot) {
   if (fs.existsSync(redirectsPath)) sheet = JSON.parse(fs.readFileSync(redirectsPath, "utf8"));
   const existing = sheet.data || [];
   const seen = new Set(redirects.map((r) => r.Source));
-  // Drop superseded rows, and purge any stale right-rail entries (now excluded).
-  const kept = existing.filter((r) => !seen.has(r.Source) && !/\/right-rail\.html$/i.test(r.Source));
+  // Drop superseded rows, and purge stale entries for now-excluded pages
+  // (right-rail fragments + test/scratch pages).
+  const PURGE_RE = /\/right-rail\.html$|(?:^|\/)test-(?:page|product)(?:\.html$|\/)/i;
+  const kept = existing.filter((r) => !seen.has(r.Source) && !PURGE_RE.test(r.Source));
   const merged = redirects.concat(kept).sort((a, b) => a.Source.localeCompare(b.Source));
   sheet.data = merged; sheet.total = merged.length; sheet.limit = merged.length; sheet.offset = 0;
   fs.writeFileSync(redirectsPath, JSON.stringify(sheet));
