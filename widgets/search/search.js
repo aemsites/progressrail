@@ -1,4 +1,5 @@
 import { createOptimizedPicture, loadCSS } from '../../scripts/aem.js';
+import { normalizeIndexImageUrl } from '../../scripts/scripts.js';
 
 /**
  * Load widget copy from the widget's local JSON (same name as the script).
@@ -43,7 +44,7 @@ function normalizeItem(row) {
     path,
     title: (row.title || '').trim(),
     description: (row.description || '').trim(),
-    image: row.image || '',
+    image: normalizeIndexImageUrl(row.image || ''),
   };
 }
 
@@ -162,7 +163,7 @@ function filterBySearch(index, searchTerm) {
  */
 function hasImage(item) {
   const image = item?.image?.trim();
-  if (!image || !image.startsWith('https://')) return false;
+  if (!image || (!image.startsWith('http://') && !image.startsWith('https://'))) return false;
   if (image.toLowerCase().startsWith('data:')) return false;
   return !image.includes('default-meta-image');
 }

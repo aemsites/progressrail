@@ -1,6 +1,7 @@
 import {
   createOptimizedPicture, decorateBlock, loadBlock,
 } from '../../scripts/aem.js';
+import { normalizeIndexImageUrl } from '../../scripts/scripts.js';
 
 const FACETS = [
   { key: 'region', copyKey: 'region' },
@@ -77,9 +78,10 @@ function matchesFilters(item, selected) {
 
 function buildCardRow(item) {
   const row = document.createElement('div');
-  if (item.image) {
+  const image = normalizeIndexImageUrl(item.image);
+  if (image) {
     const mediaCell = document.createElement('div');
-    const picture = createOptimizedPicture(item.image, item.title || '', false, [{ width: '750' }]);
+    const picture = createOptimizedPicture(image, item.title || '', false, [{ width: '750' }]);
     mediaCell.append(picture);
     row.append(mediaCell);
   }

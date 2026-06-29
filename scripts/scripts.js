@@ -251,6 +251,21 @@ function decorateVideos(main) {
 }
 
 /**
+ * Rewrites a query-index image URL to use the current page origin.
+ * @param {string} src - Image URL from query-index.json
+ * @returns {string}
+ */
+export function normalizeIndexImageUrl(src) {
+  if (!src) return '';
+  try {
+    const { pathname, search } = new URL(src, window.location.href);
+    return `${window.location.origin}${pathname}${search}`;
+  } catch {
+    return src;
+  }
+}
+
+/**
  * Sets target and rel on links whose hostname differs from the current page.
  * @param {Element} container - The element to search for links within
  */

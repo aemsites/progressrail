@@ -1,6 +1,7 @@
 import {
   createOptimizedPicture, decorateBlock, loadBlock,
 } from '../../scripts/aem.js';
+import { normalizeIndexImageUrl } from '../../scripts/scripts.js';
 
 function getLocale() {
   const segment = window.location.pathname.split('/').filter(Boolean)[0];
@@ -40,9 +41,10 @@ async function loadIndex(lang) {
 function buildCardRow(item, showDescription) {
   const row = document.createElement('div');
 
-  if (item.image) {
+  const image = normalizeIndexImageUrl(item.image);
+  if (image) {
     const mediaCell = document.createElement('div');
-    const picture = createOptimizedPicture(item.image, item.title || '', false, [{ width: '750' }]);
+    const picture = createOptimizedPicture(image, item.title || '', false, [{ width: '750' }]);
     mediaCell.append(picture);
     row.append(mediaCell);
   }
