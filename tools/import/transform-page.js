@@ -826,7 +826,29 @@ let mainInner = sections
 // image with a real src, no <source srcset>, and no links.
 function stripEmptyRows(html) {
   const $$ = cheerio.load(html, { decodeEntities: false });
-  const BLOCKS = ["hero", "banner", "cards", "columns", "carousel", "accordion", "tabs", "list", "jump-nav", "metadata", "section-metadata"];
+  const BLOCKS = ["hero", "banner", "cards", "columns", "carousel", "accordion", "tabs", "list", "jump-nav", "metadata", "section-metadata", "table"];
+
+  // Free-standing data tables -> a `table` block (row/cell divs). EDS treats a
+  // top-level table as a block definition, so a raw data table would be mis-parsed.
+  // Tables NESTED in another block are left as raw <table> (a block can't nest).
+  const BLOCK_SEL = "." + BLOCKS.join(",.");
+  $$("table").toArray().forEach((tbl) => {
+    const $t = $$(tbl);
+    if ($t.parents(BLOCK_SEL).length) return; // nested in a block -> leave untouched
+    const rows = $t.find("tr").toArray().map((tr) => {
+      const cells = $$(tr).children("td,th").toArray().map((td) => {
+        const $td = $$(td);
+        $td.find("b").toArray().forEach((b) => (b.tagName = "strong"));
+        $td.find("i").toArray().forEach((i) => (i.tagName = "em"));
+        $td.find("h1,h2,h3,h4,h5,h6").toArray().forEach((hd) => { const $h = $$(hd); $h.replaceWith($h.contents()); });
+        $td.find("br").remove();
+        const inner = ($td.html() || "").replace(/&nbsp;| /g, " ").replace(/\s+/g, " ").trim();
+        return `<div>${inner}</div>`;
+      });
+      return `<div>${cells.join("")}</div>`;
+    });
+    $t.replaceWith(`<div class="table">${rows.join("")}</div>`);
+  });
   const isEmpty = ($el) => {
     if ($el.text().replace(/\s| /g, "").length) return false;
     if ($el.find("img").toArray().some((i) => ($$(i).attr("src") || "").trim())) return false;
