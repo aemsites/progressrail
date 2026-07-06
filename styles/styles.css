@@ -78,7 +78,7 @@
 
   /* layout */
   --nav-height: 180px;
-  --site-width: 1200px;
+  --site-width: 1140px;
   --content-width: 1070px;
 
   /* border radii */
@@ -465,16 +465,20 @@ main > .section > [class*="-wrapper"] + [class*="-wrapper"] {
   margin-top: var(--space-l);
 }
 
-main > .section > .default-content-wrapper {
-  max-width: var(--content-width);
-}
-
 main > .section > .default-content-wrapper + [class*="-wrapper"] {
   margin-top: 1.2em;
 }
 
-main > .section:first-of-type {
-  margin-top: 0;
+main > .section > .default-content-wrapper p,
+main > .section > .default-content-wrapper pre,
+main > .section > .default-content-wrapper ul,
+main > .section > .default-content-wrapper ol,
+main > .section > .default-content-wrapper picture,
+main > .section > .default-content-wrapper blockquote,
+main > .section > .default-content-wrapper table {
+  max-width: var(--content-width);
+  margin-left: auto;
+  margin-right: auto;
 }
 
 @media (width >= 900px) {
