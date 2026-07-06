@@ -55,6 +55,7 @@ div.jump-nav-container {
 @media (width >= 900px) {
   .jump-nav ul {
     align-items: center;
+    min-height: 68px;
   }
 }
 
