@@ -6,7 +6,6 @@ main .section:first-child:is(.hero-container) {
   margin-bottom: 0;
 }
 
-
 .hero-container:not(.teaser) .hero-wrapper {
   max-width: unset;
   padding: 0;
@@ -136,7 +135,7 @@ main .section:first-child:is(.hero-container) {
   }
 
   .hero .body-wrapper h1 {
-    margin-bottom: 1em;
+    margin-bottom: 0.5em;
     font-size: 3.375rem;
     text-shadow: 0 1px 5px rgb(0 0 0 / 60%);
   }
