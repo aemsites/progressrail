@@ -115,7 +115,7 @@ function buildWidgetAutoBlocks(main) {
  * @param {string} href - Link href
  * @returns {boolean}
  */
-function isYouTubeHref(href) {
+export function isYouTubeHref(href) {
   try {
     const { hostname } = new URL(href);
     return hostname === 'youtu.be' || hostname.endsWith('youtube.com');
@@ -130,7 +130,7 @@ function isYouTubeHref(href) {
  */
 export function buildVideoAutoBlocks(main) {
   [...main.querySelectorAll('a[href]')]
-    .filter((a) => isYouTubeHref(a.href) && !a.closest('.video'))
+    .filter((a) => isYouTubeHref(a.href) && !a.closest('main > div > div[class]'))
     .forEach((link) => {
       const newLink = link.cloneNode(true);
       const videoBlock = buildBlock('video', { elems: [newLink] });
