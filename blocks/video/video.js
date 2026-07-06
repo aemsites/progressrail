@@ -16,7 +16,7 @@ function detectType(url) {
  * @param {string} url - the video page or short URL to parse
  * @returns {HTMLIFrameElement|null} configured embed iframe
  */
-function createYouTubeEmbed(url) {
+export function createYouTubeEmbed(url) {
   const { hostname, pathname, searchParams } = new URL(url);
   const id = hostname === 'youtu.be' ? pathname.slice(1) : searchParams.get('v');
   if (!id) return null;
@@ -41,20 +41,19 @@ function createEmbed(type, url) {
 }
 
 /**
- * Builds a thumbnail overlay.
- * @param {HTMLElement} block - block element containing the authored thumbnail image
- * @param {HTMLIFrameElement} embed - video iframe to activate on play
+ * Builds a thumbnail overlay with a play button.
+ * @param {HTMLElement|null} picture - thumbnail image element to display; returns null if absent
+ * @param {Function} onPlay - called when the user activates the play control
  * @returns {HTMLElement|null} the placeholder figure
  */
-function createPlaceholder(block, embed) {
-  const image = block.querySelector('picture, img');
-  if (!image) return null;
+export function createPlaceholder(picture, onPlay) {
+  if (!picture) return null;
 
   const figure = document.createElement('figure');
   figure.classList.add('placeholder');
   figure.setAttribute('role', 'button');
   figure.setAttribute('tabindex', '0');
-  figure.append(image);
+  figure.append(picture);
 
   const icon = document.createElement('span');
   icon.className = 'icon icon-play';
@@ -62,10 +61,7 @@ function createPlaceholder(block, embed) {
   decorateIcons(figure);
 
   function play() {
-    const src = new URL(embed.src);
-    src.searchParams.set('autoplay', 1);
-    embed.src = src.href;
-    if (!embed.isConnected) block.append(embed);
+    onPlay();
     figure.remove();
   }
 
@@ -100,7 +96,12 @@ export default function decorate(block) {
   const embed = createEmbed(type, link.href);
   if (!embed) { removeBlock(block); return; }
 
-  const placeholder = createPlaceholder(block, embed);
+  const placeholder = createPlaceholder(block.querySelector('picture, img'), () => {
+    const src = new URL(embed.src);
+    src.searchParams.set('autoplay', 1);
+    embed.src = src.href;
+    if (!embed.isConnected) block.append(embed);
+  });
 
   block.textContent = '';
   if (placeholder) block.append(placeholder);

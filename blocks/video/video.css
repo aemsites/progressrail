@@ -1,6 +1,7 @@
 .video {
   display: block;
   position: relative;
+  max-width: var(--content-width);
   margin: 0 auto;
   aspect-ratio: 16 / 9;
 }
