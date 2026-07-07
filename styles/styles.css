@@ -354,6 +354,7 @@ button.button {
   text-transform: capitalize;
   white-space: nowrap;
   cursor: pointer;
+  transition: border-color 0.2s, background-color 0.2s, color 0.2s;
 }
 
 a.button[aria-disabled="true"],
