@@ -1,5 +1,5 @@
 import { getMetadata, decorateIcons } from '../../scripts/aem.js';
-import { decorateExternalLinks } from '../../scripts/scripts.js';
+import { decorateExternalLinks, loadCopy } from '../../scripts/scripts.js';
 import { loadFragment } from '../fragment/fragment.js';
 
 /**
@@ -199,10 +199,11 @@ function pageHasSearchWidget() {
 /**
  * Builds a search form with an input and submit button inside the section.
  * @param {Element} section - The search section element
+ * @param {Object} copy - Localized UI strings
  */
-function decorateSearch(section) {
+function decorateSearch(section, copy) {
   const p = section.querySelector('p');
-  const placeholder = p ? p.textContent.trim() : 'Search'; // TODO: localization
+  const placeholder = p ? p.textContent.trim() : (copy.search || 'Search');
 
   const form = document.createElement('form');
   form.setAttribute('role', 'search');
@@ -284,9 +285,10 @@ function decorateLanguage(section) {
 
 /**
  * Builds the hamburger button that controls the mobile nav and language overlay.
+ * @param {Object} copy - Localized UI strings
  * @returns {Element} - The hamburger section element
  */
-function buildHamburger() {
+function buildHamburger(copy) {
   const wrapper = document.createElement('div');
   wrapper.classList.add('section', 'header-hamburger');
 
@@ -294,7 +296,7 @@ function buildHamburger() {
   button.type = 'button';
   button.setAttribute('aria-expanded', false);
   button.setAttribute('aria-controls', 'nav header-language');
-  button.setAttribute('aria-label', 'Menu'); // TODO: localization
+  button.setAttribute('aria-label', copy.menu || 'Menu');
 
   const icon = document.createElement('span');
   icon.classList.add('icon-hamburger');
@@ -367,6 +369,7 @@ function buildHamburger() {
  * @param {Element} block - The header block element
  */
 export default async function decorate(block) {
+  const copy = await loadCopy(import.meta.url);
   const navMeta = getMetadata('nav');
   const navPath = navMeta ? new URL(navMeta, window.location).pathname : '/nav';
   const fragment = await loadFragment(navPath);
@@ -390,9 +393,9 @@ export default async function decorate(block) {
   if (language) decorateLanguage(language);
 
   const search = getSection(block, 'search');
-  if (search) decorateSearch(search);
+  if (search) decorateSearch(search, copy);
 
-  const hamburger = buildHamburger();
+  const hamburger = buildHamburger(copy);
   block.prepend(hamburger);
 
   decorateExternalLinks(block);

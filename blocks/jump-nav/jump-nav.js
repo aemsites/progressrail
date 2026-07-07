@@ -1,9 +1,12 @@
-export default function decorate(block) {
+import { loadCopy } from '../../scripts/scripts.js';
+
+export default async function decorate(block) {
+  const copy = await loadCopy(import.meta.url);
   const ul = block.querySelector('ul');
   const cta = block.querySelector('p.button-wrapper');
 
   const nav = document.createElement('nav');
-  nav.setAttribute('aria-label', 'Page Sections'); // TODO: localization
+  nav.setAttribute('aria-label', copy.pageSections || 'Page Sections');
   nav.append(ul);
   if (cta) nav.append(cta);
 

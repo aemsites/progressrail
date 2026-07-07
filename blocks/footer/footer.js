@@ -1,5 +1,5 @@
 import { getMetadata, decorateIcons } from '../../scripts/aem.js';
-import { decorateExternalLinks } from '../../scripts/scripts.js';
+import { decorateExternalLinks, loadCopy } from '../../scripts/scripts.js';
 import { loadFragment } from '../fragment/fragment.js';
 
 /**
@@ -73,13 +73,14 @@ function decorateDetails(container) {
 /**
  * Replaces the section div with a nav landmark.
  * @param {Element} section - The footer-nav section element to promote
+ * @param {Object} copy - Localized UI strings
  */
-function decorateNav(section) {
+function decorateNav(section, copy) {
   const content = section.querySelector('div');
   if (!content) return;
   decorateDetails(content);
   const nav = document.createElement('nav');
-  nav.setAttribute('aria-label', 'Footer'); // TODO: localization
+  nav.setAttribute('aria-label', copy.footer || 'Footer');
   nav.classList.add(...section.classList);
   nav.append(...content.children);
   section.replaceWith(nav);
@@ -122,6 +123,7 @@ function decorateSocial(section) {
  * @param {Element} block - The footer block element
  */
 export default async function decorate(block) {
+  const copy = await loadCopy(import.meta.url);
   const footerMeta = getMetadata('footer');
   const footerPath = footerMeta ? new URL(footerMeta, window.location).pathname : '/footer';
   const fragment = await loadFragment(footerPath);
@@ -136,7 +138,7 @@ export default async function decorate(block) {
   });
 
   const nav = getSection(block, 'nav');
-  if (nav) decorateNav(nav);
+  if (nav) decorateNav(nav, copy);
 
   const social = getSection(block, 'social');
   if (social) decorateSocial(social);

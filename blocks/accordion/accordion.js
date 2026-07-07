@@ -1,4 +1,7 @@
-export default function decorate(block) {
+import { loadCopy } from '../../scripts/scripts.js';
+
+export default async function decorate(block) {
+  const copy = await loadCopy(import.meta.url);
   [...block.children].forEach((row) => {
     const label = row.children[0];
     const summary = document.createElement('summary');
@@ -23,7 +26,7 @@ export default function decorate(block) {
 
   const updateToggle = () => {
     const allOpen = items.every((item) => item.open);
-    toggle.textContent = allOpen ? 'Collapse All' : 'Expand All'; // TODO: localization
+    toggle.textContent = allOpen ? (copy.collapseAll || 'Collapse All') : (copy.expandAll || 'Expand All');
     toggle.setAttribute('aria-expanded', String(allOpen));
   };
 

@@ -1,4 +1,5 @@
 import { decorateIcons } from '../../scripts/aem.js';
+import { loadCopy } from '../../scripts/scripts.js';
 
 /**
  * Returns the video provider name for a supported URL.
@@ -14,18 +15,19 @@ function detectType(url) {
 /**
  * Builds a YouTube iframe.
  * @param {string} url - the video page or short URL to parse
+ * @param {Object} copy - Localized UI strings
  * @returns {HTMLIFrameElement|null} configured embed iframe
  */
-export function createYouTubeEmbed(url) {
+export function createYouTubeEmbed(url, copy) {
   const { hostname, pathname, searchParams } = new URL(url);
   const id = hostname === 'youtu.be' ? pathname.slice(1) : searchParams.get('v');
   if (!id) return null;
 
   const iframe = document.createElement('iframe');
   iframe.src = `https://www.youtube.com/embed/${id}`;
+  iframe.title = copy.youTubeVideo || 'YouTube video';
   iframe.setAttribute('allowfullscreen', '');
   iframe.setAttribute('allow', 'autoplay; encrypted-media; picture-in-picture');
-  iframe.title = 'YouTube video'; // TODO: localization
   return iframe;
 }
 
@@ -33,10 +35,11 @@ export function createYouTubeEmbed(url) {
  * Builds an embed iframe for the given provider type and URL.
  * @param {string} type - provider name returned by detectType
  * @param {string} url - the video URL to embed
+ * @param {Object} copy - Localized UI strings
  * @returns {HTMLIFrameElement|null} embed iframe
  */
-function createEmbed(type, url) {
-  if (type === 'youtube') return createYouTubeEmbed(url);
+function createEmbed(type, url, copy) {
+  if (type === 'youtube') return createYouTubeEmbed(url, copy);
   return null;
 }
 
@@ -85,7 +88,8 @@ function removeBlock(block) {
   if (wrapper) wrapper.remove();
 }
 
-export default function decorate(block) {
+export default async function decorate(block) {
+  const copy = await loadCopy(import.meta.url);
   const link = block.querySelector('a[href]');
   if (!link) { removeBlock(block); return; }
 
@@ -93,7 +97,7 @@ export default function decorate(block) {
   if (!type) { removeBlock(block); return; }
   block.dataset.source = type;
 
-  const embed = createEmbed(type, link.href);
+  const embed = createEmbed(type, link.href, copy);
   if (!embed) { removeBlock(block); return; }
 
   const placeholder = createPlaceholder(block.querySelector('picture, img'), () => {
