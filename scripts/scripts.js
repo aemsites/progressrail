@@ -111,6 +111,34 @@ function buildWidgetAutoBlocks(main) {
 }
 
 /**
+ * Returns the two-letter language code for the current page.
+ * @returns {string}
+ */
+function getLocale() {
+  const segment = window.location.pathname.split('/').filter(Boolean)[0];
+  const lang = (segment && /^[a-z]{2}(-[a-z]{2})?$/i.test(segment)) ? segment : 'en';
+  return lang.split('-')[0].toLowerCase();
+}
+
+/**
+ * Fetches localized UI strings from a block's companion JSON file.
+ * @param {string} scriptUrl - The block module's `import.meta.url`
+ * @returns {Promise<Object>}
+ */
+export async function loadCopy(scriptUrl) {
+  const jsonPath = new URL(scriptUrl).pathname.replace(/\.js$/, '.json');
+  const url = `${(window.hlx && window.hlx.codeBasePath) || ''}${jsonPath}`;
+  try {
+    const resp = await fetch(url);
+    if (!resp.ok) return {};
+    const data = await resp.json();
+    return data[getLocale()] || data.en || {};
+  } catch {
+    return {};
+  }
+}
+
+/**
  * Whether a URL points at a YouTube video page.
  * @param {string} href - Link href
  * @returns {boolean}
@@ -297,7 +325,7 @@ export function decorateMain(main) {
  * @param {Element} doc The container element
  */
 async function loadEager(doc) {
-  document.documentElement.lang = 'en';
+  document.documentElement.lang = getLocale();
   decorateTemplateAndTheme();
   const main = doc.querySelector('main');
   if (main) {
