@@ -18,7 +18,7 @@ function detectType(url) {
  * @param {Object} copy - Localized UI strings
  * @returns {HTMLIFrameElement|null} configured embed iframe
  */
-export function createYouTubeEmbed(url, copy) {
+export function createYouTubeEmbed(url, copy = {}) {
   const { hostname, pathname, searchParams } = new URL(url);
   const id = hostname === 'youtu.be' ? pathname.slice(1) : searchParams.get('v');
   if (!id) return null;
