@@ -1,0 +1,20 @@
+{
+  "en": {
+    "carousel": "Carousel",
+    "slideNavigation": "Slide navigation",
+    "slideIndicators": "Slide indicators",
+    "previousSlide": "Previous slide",
+    "nextSlide": "Next slide",
+    "showSlide": "Show slide",
+    "of": "of"
+  },
+  "fr": {
+    "carousel": "Carrousel",
+    "slideNavigation": "Navigation des diapositives",
+    "slideIndicators": "Indicateurs de diapositive",
+    "previousSlide": "Diapositive précédente",
+    "nextSlide": "Diapositive suivante",
+    "showSlide": "Afficher la diapositive",
+    "of": "sur"
+  }
+}

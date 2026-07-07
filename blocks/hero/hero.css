@@ -12,11 +12,13 @@ main .section:first-child:is(.hero-container) {
 }
 
 .hero {
+  --hero-height: 350px;
+
   display: flex;
   align-items: center;
   position: relative;
   overflow: hidden;
-  min-height: 350px;
+  min-height: var(--hero-height);
 }
 
 .hero:not(.teaser) {
@@ -154,8 +156,10 @@ main .section:first-child:is(.hero-container) {
 
 @media (width >= 900px) {
   .hero.teaser {
+    --hero-height: 325px;
+
     align-items: center;
-    min-height: 325px;
+    min-height: var(--hero-height);
   }
 
   .hero.teaser::before {
@@ -198,4 +202,161 @@ main .section:first-child:is(.hero-container) {
     max-width: 360px;
     padding: var(--space-m) var(--space-xl);
   }
+}
+
+/* CAROUSEL */
+
+.hero.carousel {
+  display: block;
+}
+
+@media (width >= 900px) {
+  .hero.carousel::before {
+    content: none;
+  }
+}
+
+.hero.carousel .slides-wrapper {
+  display: block;
+  position: relative;
+  max-width: unset;
+  margin: 0;
+}
+
+.hero.carousel .slides {
+  list-style: none;
+  display: flex;
+  overflow: scroll clip;
+  margin: 0;
+  padding: 0;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.hero.carousel .slides::-webkit-scrollbar {
+  display: none;
+}
+
+.hero.carousel .slide {
+  display: flex;
+  flex: 0 0 100%;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  min-height: var(--hero-height);
+  scroll-snap-align: start;
+}
+
+.hero.carousel .slide > div {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  width: 100%;
+  max-width: var(--site-width);
+  margin: 0 auto;
+}
+
+@media (width >= 900px) {
+  .hero.carousel .slide::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(to right, var(--color-black) 7%, rgb(0 0 0 / 0%) 93%);
+    pointer-events: none;
+  }
+
+  .hero.carousel .slide[data-body="right"]::before {
+    background: linear-gradient(to left, var(--color-black) 7%, rgb(0 0 0 / 0%) 93%);
+  }
+
+  .hero.carousel .slide[data-body="right"] .body-wrapper {
+    margin-left: auto;
+  }
+}
+
+.hero.carousel .controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: absolute;
+  inset: 0 var(--space-xs);
+  z-index: 2;
+  pointer-events: none;
+}
+
+.hero.carousel .controls .button {
+  height: 44px;
+  width: 44px;
+  border-radius: 50%;
+  padding: 0;
+  background-color: var(--color-bg);
+  opacity: 0.9;
+  pointer-events: auto;
+}
+
+.hero.carousel .controls .button:hover,
+.hero.carousel .controls .button:focus-visible {
+  background-color: var(--color-brand);
+  opacity: 1;
+}
+
+.hero.carousel .controls .button[hidden] {
+  visibility: hidden;
+}
+
+.hero.carousel.teaser > nav {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+}
+
+.hero.carousel .indicators {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: safe center;
+  gap: var(--space-s);
+  margin: 0;
+  padding: var(--space-m) 0;
+  line-height: 0;
+}
+
+.hero.carousel .indicators button {
+  position: relative;
+  height: 44px;
+  width: 44px;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.hero.carousel .indicators button::after {
+  content: '';
+  position: absolute;
+  inset: 50% 0;
+  height: 5px;
+  background-color: var(--color-bg-dark);
+  transform: translateY(-50%);
+  transition: background-color 0.2s;
+}
+
+.hero.carousel .indicators button:disabled::after,
+.hero.carousel .indicators button[aria-current="true"]::after {
+  background-color: var(--color-brand);
+}
+
+.hero.carousel .indicators button:hover::after,
+.hero.carousel .indicators button:focus-visible::after {
+  background-color: var(--color-brand-dark);
+}
+
+.hero.carousel .indicators button:disabled:hover::after,
+.hero.carousel .indicators button:disabled:focus-visible::after,
+.hero.carousel .indicators button[aria-current="true"]:hover::after,
+.hero.carousel .indicators button[aria-current="true"]:focus-visible::after {
+  background-color: var(--color-brand);
 }
