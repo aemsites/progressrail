@@ -1,15 +1,7 @@
 import {
   createOptimizedPicture, decorateBlock, loadBlock,
 } from '../../scripts/aem.js';
-import { normalizeIndexImageUrl } from '../../scripts/scripts.js';
-
-function getLocale() {
-  const segment = window.location.pathname.split('/').filter(Boolean)[0];
-  if (segment && /^[a-z]{2}(-[a-z]{2})?$/i.test(segment)) {
-    return segment.split('-')[0].toLowerCase();
-  }
-  return (document.documentElement.lang || 'en').split('-')[0].toLowerCase();
-}
+import { normalizeIndexImageUrl, getLocale } from '../../scripts/scripts.js';
 
 function resolveRoot(rootParam, lang) {
   const pagePath = window.location.pathname;

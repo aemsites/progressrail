@@ -1,7 +1,7 @@
 import {
   createOptimizedPicture, decorateBlock, loadBlock,
 } from '../../scripts/aem.js';
-import { normalizeIndexImageUrl } from '../../scripts/scripts.js';
+import { normalizeIndexImageUrl, getLocale } from '../../scripts/scripts.js';
 
 const FACETS = [
   { key: 'region', copyKey: 'region' },
@@ -11,14 +11,6 @@ const FACETS = [
   { key: 'axle-load', copyKey: 'axleLoad' },
   { key: 'traction-system', copyKey: 'tractionSystem' },
 ];
-
-function getLocale() {
-  const segment = window.location.pathname.split('/').filter(Boolean)[0];
-  if (segment && /^[a-z]{2}(-[a-z]{2})?$/i.test(segment)) {
-    return segment.split('-')[0].toLowerCase();
-  }
-  return (document.documentElement.lang || 'en').split('-')[0].toLowerCase();
-}
 
 async function loadWidgetCopy(lang) {
   const scriptPath = new URL(import.meta.url).pathname;
