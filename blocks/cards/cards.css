@@ -93,6 +93,10 @@
   padding: var(--space-m);
 }
 
+.cards .body-wrapper h3 > a {
+  color: inherit;
+}
+
 /* footer */
 .cards footer {
   padding: var(--space-m);
