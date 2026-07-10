@@ -21,8 +21,12 @@ export default async function decorate(widget) {
   const showDescription = widget.dataset.description !== 'false';
 
   const parentPath = resolveRoot(rootParam, lang);
+  const currentPath = window.location.pathname;
   const index = await loadIndex(lang);
-  const children = index.filter((item) => isDirectChild(item.path || item.url || '', parentPath));
+  const children = index.filter((item) => {
+    const itemPath = item.path || item.url || '';
+    return isDirectChild(itemPath, parentPath) && itemPath !== currentPath;
+  });
 
   if (children.length === 0) return;
 
