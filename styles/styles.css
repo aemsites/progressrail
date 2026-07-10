@@ -573,4 +573,8 @@ main .section.dark button.button.secondary:focus-visible {
   main .section.dark {
     padding: var(--space-xl) 0;
   }
+
+  main > .section.dark:last-child {
+    padding: var(--space-l) 0;
+  }
 }
