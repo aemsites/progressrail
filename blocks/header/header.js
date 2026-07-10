@@ -1,5 +1,5 @@
 import { getMetadata, decorateIcons } from '../../scripts/aem.js';
-import { decorateExternalLinks, loadCopy } from '../../scripts/scripts.js';
+import { decorateExternalLinks, loadCopy, getLocale } from '../../scripts/scripts.js';
 import { loadFragment } from '../fragment/fragment.js';
 
 /**
@@ -176,18 +176,6 @@ function decorateNav(section) {
 }
 
 /**
- * Resolve the locale prefix from the current URL path.
- * @returns {string} Locale path segment (e.g. en, fr)
- */
-function getLocaleFromPath() {
-  const segment = window.location.pathname.split('/').filter(Boolean)[0];
-  if (segment && /^[a-z]{2}(-[a-z]{2})?$/i.test(segment)) {
-    return segment.split('-')[0].toLowerCase();
-  }
-  return 'en';
-}
-
-/**
  * Whether the page includes a search results widget.
  * @returns {boolean}
  */
@@ -227,7 +215,7 @@ function decorateSearch(section, copy) {
   section.textContent = '';
   section.append(form);
 
-  const locale = getLocaleFromPath();
+  const locale = getLocale();
   const searchResultsPath = `/${locale}/search`;
 
   const params = new URLSearchParams(window.location.search);

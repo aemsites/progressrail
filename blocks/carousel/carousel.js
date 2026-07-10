@@ -1,5 +1,5 @@
 // eslint-disable-next-line import/no-cycle
-import { buildVideoAutoBlocks } from '../../scripts/scripts.js';
+import { buildVideoAutoBlocks, getLocale } from '../../scripts/scripts.js';
 import { decorateBlock, loadBlock } from '../../scripts/aem.js';
 
 const CAROUSEL_VARIANTS = ['slides', 'promo'];
@@ -9,14 +9,6 @@ function resolveVariant(block) {
   if (selected) return selected;
   block.classList.add('promo');
   return 'promo';
-}
-
-function getLocale() {
-  const segment = window.location.pathname.split('/').filter(Boolean)[0];
-  if (segment && /^[a-z]{2}(-[a-z]{2})?$/i.test(segment)) {
-    return segment.split('-')[0].toLowerCase();
-  }
-  return (document.documentElement.lang || 'en').split('-')[0].toLowerCase();
 }
 
 async function loadCopy(lang) {

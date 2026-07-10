@@ -1,5 +1,5 @@
 import { createOptimizedPicture, loadCSS } from '../../scripts/aem.js';
-import { normalizeIndexImageUrl } from '../../scripts/scripts.js';
+import { normalizeIndexImageUrl, getLocale } from '../../scripts/scripts.js';
 
 /**
  * Load widget copy from the widget's local JSON (same name as the script).
@@ -19,18 +19,6 @@ async function loadWidgetCopy(lang) {
   } catch (_) {
     return {};
   }
-}
-
-/**
- * Resolve the current site locale from the URL path or document language.
- * @returns {string} Locale code (e.g. en, fr)
- */
-function getLocale() {
-  const segment = window.location.pathname.split('/').filter(Boolean)[0];
-  if (segment && /^[a-z]{2}(-[a-z]{2})?$/i.test(segment)) {
-    return segment.split('-')[0].toLowerCase();
-  }
-  return (document.documentElement.lang || 'en').split('-')[0].toLowerCase();
 }
 
 /**
