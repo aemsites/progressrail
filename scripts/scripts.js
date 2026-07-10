@@ -121,8 +121,8 @@ export function getLocale() {
 }
 
 /**
- * Fetches localized UI strings from a block's companion JSON file.
- * @param {string} scriptUrl - The block module's `import.meta.url`
+ * Fetches localized UI strings from a folders's companion JSON file.
+ * @param {string} scriptUrl - The module's `import.meta.url`
  * @returns {Promise<Object>}
  */
 export async function loadCopy(scriptUrl) {
