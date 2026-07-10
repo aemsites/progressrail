@@ -1,7 +1,7 @@
+import { decorateBlock, loadBlock } from '../../scripts/aem.js';
 import {
-  createOptimizedPicture, decorateBlock, loadBlock,
-} from '../../scripts/aem.js';
-import { normalizeIndexImageUrl, getLocale } from '../../scripts/scripts.js';
+  getLocale, loadIndex, isDirectChild, buildCardRow,
+} from '../../scripts/scripts.js';
 
 function resolveRoot(rootParam, lang) {
   const pagePath = window.location.pathname;
@@ -13,51 +13,6 @@ function resolveRoot(rootParam, lang) {
     return `/${lang}${rootParam}`;
   }
   return pagePath;
-}
-
-function isDirectChild(itemPath, parentPath) {
-  const normalized = parentPath.endsWith('/') ? parentPath.slice(0, -1) : parentPath;
-  if (!itemPath.startsWith(`${normalized}/`)) return false;
-  const rest = itemPath.slice(normalized.length + 1);
-  return rest.length > 0 && !rest.includes('/');
-}
-
-async function loadIndex(lang) {
-  const base = window.hlx?.codeBasePath || '';
-  const resp = await fetch(`${base}/${lang}/query-index.json`);
-  if (!resp.ok) return [];
-  const json = await resp.json();
-  return Array.isArray(json.data) ? json.data : [];
-}
-
-function buildCardRow(item, showDescription) {
-  const row = document.createElement('div');
-
-  const image = normalizeIndexImageUrl(item.image);
-  if (image) {
-    const mediaCell = document.createElement('div');
-    const picture = createOptimizedPicture(image, item.title || '', false, [{ width: '750' }]);
-    mediaCell.append(picture);
-    row.append(mediaCell);
-  }
-
-  const bodyCell = document.createElement('div');
-  if (item.title) {
-    const heading = document.createElement('h3');
-    const link = document.createElement('a');
-    link.href = item.path;
-    link.textContent = item.title;
-    heading.append(link);
-    bodyCell.append(heading);
-  }
-  if (showDescription && item.description) {
-    const p = document.createElement('p');
-    p.textContent = item.description;
-    bodyCell.append(p);
-  }
-  row.append(bodyCell);
-
-  return row;
 }
 
 export default async function decorate(widget) {

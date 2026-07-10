@@ -1,4 +1,4 @@
-import { getLocale, loadCopy } from '../../scripts/scripts.js';
+import { getLocale, loadCopy, hydrateCopy } from '../../scripts/scripts.js';
 
 const DEFAULT_PAGE_SIZE = 12;
 
@@ -73,22 +73,6 @@ function formatReleaseDate(dateStr, locale) {
     month: 'long',
     day: 'numeric',
   }).format(date);
-}
-
-/**
- * Hydrate all [data-copy] elements from widget copy.
- * @param {HTMLElement} container - .press-releases root element
- * @param {Object} copy - Widget copy for the current language
- */
-function hydrateCopy(container, copy) {
-  container.querySelectorAll('[data-copy]').forEach((el) => {
-    const value = copy[el.dataset.copy];
-    if (!value) return;
-    const target = el.dataset.copyTarget;
-    if (target) {
-      target.split(',').forEach((attr) => el.setAttribute(attr.trim(), value));
-    } else el.textContent = value;
-  });
 }
 
 /**

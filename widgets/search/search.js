@@ -1,5 +1,7 @@
 import { createOptimizedPicture, loadCSS } from '../../scripts/aem.js';
-import { normalizeIndexImageUrl, getLocale, loadCopy } from '../../scripts/scripts.js';
+import {
+  normalizeIndexImageUrl, getLocale, loadCopy, hydrateCopy,
+} from '../../scripts/scripts.js';
 
 /**
  * Normalize a single item from the query index.
@@ -395,22 +397,6 @@ async function searchItems(searchTerm, limit) {
   const results = filterBySearch(index, searchTerm);
   sortByRelevance(results, searchTerm);
   return limit ? results.slice(0, limit) : results;
-}
-
-/**
- * Hydrate all [data-copy] elements from widget copy.
- * @param {HTMLElement} container - .search root element
- * @param {Object} copy - Widget copy for the current language
- */
-function hydrateCopy(container, copy) {
-  container.querySelectorAll('[data-copy]').forEach((el) => {
-    const value = copy[el.dataset.copy];
-    if (!value) return;
-    const target = el.dataset.copyTarget;
-    if (target) {
-      target.split(',').forEach((attr) => el.setAttribute(attr.trim(), value));
-    } else el.textContent = value;
-  });
 }
 
 const ITEMS_PER_PAGE = 16;
