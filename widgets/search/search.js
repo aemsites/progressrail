@@ -1,25 +1,5 @@
 import { createOptimizedPicture, loadCSS } from '../../scripts/aem.js';
-import { normalizeIndexImageUrl, getLocale } from '../../scripts/scripts.js';
-
-/**
- * Load widget copy from the widget's local JSON (same name as the script).
- * @param {string} lang - Language key (e.g. en)
- * @returns {Promise<Object>} Copy for that language (flat key-value)
- */
-async function loadWidgetCopy(lang) {
-  const scriptPath = new URL(import.meta.url).pathname;
-  const jsonPath = scriptPath.replace(/\.js$/, '.json');
-  const url = `${window.hlx?.codeBasePath || ''}${jsonPath}`;
-  try {
-    const resp = await fetch(url);
-    if (!resp.ok) return {};
-    const data = await resp.json();
-    const key = data[lang] ? lang : 'en';
-    return data[key] || {};
-  } catch (_) {
-    return {};
-  }
-}
+import { normalizeIndexImageUrl, getLocale, loadCopy } from '../../scripts/scripts.js';
 
 /**
  * Normalize a single item from the query index.
@@ -687,8 +667,7 @@ export async function attachSearchSuggestions(input, opts = {}) {
 
   await loadCSS(`${window.hlx?.codeBasePath || ''}/widgets/search/suggestions.css`);
 
-  const lang = (document.documentElement.lang || 'en').split('-')[0];
-  const copy = await loadWidgetCopy(lang);
+  const copy = await loadCopy(import.meta.url);
 
   const overlay = document.createElement('div');
   overlay.id = 'search-suggestions';
@@ -851,8 +830,7 @@ export async function initHeaderSearch(input, opts = {}) {
  * @param {HTMLElement} widget - Widget container element
  */
 export default async function decorate(widget) {
-  const lang = (document.documentElement.lang || 'en').split('-')[0];
-  const copy = await loadWidgetCopy(lang);
+  const copy = await loadCopy(import.meta.url);
 
   hydrateCopy(widget, copy);
   searchResultsContainer = widget;

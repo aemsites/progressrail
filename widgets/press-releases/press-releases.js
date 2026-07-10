@@ -1,25 +1,6 @@
-import { getLocale } from '../../scripts/scripts.js';
+import { getLocale, loadCopy } from '../../scripts/scripts.js';
 
-/**
- * Load widget config from the widget's local JSON (same name as the script).
- * @param {string} lang - Language key (e.g. en)
- * @returns {Promise<{ copy: Object, defaultPageSize: number }>}
- */
-async function loadWidgetConfig(lang) {
-  const scriptPath = new URL(import.meta.url).pathname;
-  const jsonPath = scriptPath.replace(/\.js$/, '.json');
-  const url = `${window.hlx?.codeBasePath || ''}${jsonPath}`;
-  try {
-    const resp = await fetch(url);
-    if (!resp.ok) return { copy: {}, defaultPageSize: 12 };
-    const data = await resp.json();
-    const key = data[lang] ? lang : 'en';
-    const defaultPageSize = parseInt(data.defaultPageSize, 10) || 12;
-    return { copy: data[key] || {}, defaultPageSize };
-  } catch (_) {
-    return { copy: {}, defaultPageSize: 12 };
-  }
-}
+const DEFAULT_PAGE_SIZE = 12;
 
 /**
  * Normalize a press release row from the query index.
@@ -225,11 +206,10 @@ export default async function decorate(widget) {
   if (widget.dataset.pressReleasesInitialized === 'true') return;
   widget.dataset.pressReleasesInitialized = 'true';
 
-  const lang = getLocale();
-  const { copy, defaultPageSize } = await loadWidgetConfig(lang);
+  const copy = await loadCopy(import.meta.url);
 
   hydrateCopy(widget, copy);
 
-  const pageSize = parseInt(widget.dataset.pageSize, 10) || defaultPageSize;
+  const pageSize = parseInt(widget.dataset.pageSize, 10) || DEFAULT_PAGE_SIZE;
   buildPressReleasesListing(widget, copy, pageSize);
 }
