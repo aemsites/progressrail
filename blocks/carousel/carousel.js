@@ -1,5 +1,5 @@
 // eslint-disable-next-line import/no-cycle
-import { buildVideoAutoBlocks, getLocale } from '../../scripts/scripts.js';
+import { buildVideoAutoBlocks, loadCopy } from '../../scripts/scripts.js';
 import { decorateBlock, loadBlock } from '../../scripts/aem.js';
 
 const CAROUSEL_VARIANTS = ['slides', 'promo'];
@@ -9,20 +9,6 @@ function resolveVariant(block) {
   if (selected) return selected;
   block.classList.add('promo');
   return 'promo';
-}
-
-async function loadCopy(lang) {
-  const scriptPath = new URL(import.meta.url).pathname;
-  const jsonPath = scriptPath.replace(/\.js$/, '.json');
-  const url = `${window.hlx?.codeBasePath || ''}${jsonPath}`;
-  try {
-    const resp = await fetch(url);
-    if (!resp.ok) return {};
-    const data = await resp.json();
-    return data[lang] || data.en || {};
-  } catch {
-    return {};
-  }
 }
 
 function updateNavigation(block, slideIndex) {
@@ -318,7 +304,7 @@ export default async function decorate(block) {
   const isSingleSlide = rows.length < 2;
   const isSlides = variant === 'slides';
 
-  const copy = await loadCopy(getLocale());
+  const copy = await loadCopy(import.meta.url);
   block.dataset.slideOf = copy.of || 'of';
 
   block.setAttribute('role', 'region');

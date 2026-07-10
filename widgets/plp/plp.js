@@ -1,7 +1,7 @@
 import {
   createOptimizedPicture, decorateBlock, loadBlock,
 } from '../../scripts/aem.js';
-import { normalizeIndexImageUrl, getLocale } from '../../scripts/scripts.js';
+import { normalizeIndexImageUrl, getLocale, loadCopy } from '../../scripts/scripts.js';
 
 const FACETS = [
   { key: 'region', copyKey: 'region' },
@@ -11,20 +11,6 @@ const FACETS = [
   { key: 'axle-load', copyKey: 'axleLoad' },
   { key: 'traction-system', copyKey: 'tractionSystem' },
 ];
-
-async function loadWidgetCopy(lang) {
-  const scriptPath = new URL(import.meta.url).pathname;
-  const jsonPath = scriptPath.replace(/\.js$/, '.json');
-  const url = `${window.hlx?.codeBasePath || ''}${jsonPath}`;
-  try {
-    const resp = await fetch(url);
-    if (!resp.ok) return {};
-    const data = await resp.json();
-    return data[lang] || data.en || {};
-  } catch {
-    return {};
-  }
-}
 
 function isDirectChild(itemPath, parentPath) {
   const normalized = parentPath.endsWith('/') ? parentPath.slice(0, -1) : parentPath;
@@ -151,7 +137,7 @@ async function renderCards(container, items) {
 
 export default async function decorate(widget) {
   const lang = getLocale();
-  const [allItems, copy] = await Promise.all([loadIndex(lang), loadWidgetCopy(lang)]);
+  const [allItems, copy] = await Promise.all([loadIndex(lang), loadCopy(import.meta.url)]);
   const parentPath = window.location.pathname;
   const children = allItems
     .filter((item) => isDirectChild(item.path || '', parentPath))
