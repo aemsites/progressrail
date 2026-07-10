@@ -114,7 +114,7 @@ function buildWidgetAutoBlocks(main) {
  * Returns the two-letter language code for the current page.
  * @returns {string}
  */
-function getLocale() {
+export function getLocale() {
   const segment = window.location.pathname.split('/').filter(Boolean)[0];
   const lang = (segment && /^[a-z]{2}(-[a-z]{2})?$/i.test(segment)) ? segment : 'en';
   return lang.split('-')[0].toLowerCase();
