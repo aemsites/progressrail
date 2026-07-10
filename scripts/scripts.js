@@ -11,6 +11,7 @@ import {
   loadCSS,
   buildBlock,
   getMetadata,
+  createOptimizedPicture,
 } from './aem.js';
 
 /**
@@ -291,6 +292,84 @@ export function normalizeIndexImageUrl(src) {
   } catch {
     return src;
   }
+}
+
+/**
+ * Fetches the locale-specific query index.
+ * @param {string} lang - Language key (e.g. en)
+ * @returns {Promise<Array<Object>>}
+ */
+export async function loadIndex(lang) {
+  const base = (window.hlx && window.hlx.codeBasePath) || '';
+  const resp = await fetch(`${base}/${lang}/query-index.json`);
+  if (!resp.ok) return [];
+  const json = await resp.json();
+  return Array.isArray(json.data) ? json.data : [];
+}
+
+/**
+ * Whether a query-index item path is exactly one segment below a parent path.
+ * @param {string} itemPath - Path from query-index.json
+ * @param {string} parentPath - Path to check against
+ * @returns {boolean}
+ */
+export function isDirectChild(itemPath, parentPath) {
+  const normalized = parentPath.endsWith('/') ? parentPath.slice(0, -1) : parentPath;
+  if (!itemPath.startsWith(`${normalized}/`)) return false;
+  const rest = itemPath.slice(normalized.length + 1);
+  return rest.length > 0 && !rest.includes('/');
+}
+
+/**
+ * Builds a cards-block-compatible row (media + body cells) from a query-index item.
+ * @param {Object} item - Normalized query-index item
+ * @param {boolean} [showDescription=true] - Whether to include the description paragraph
+ * @returns {HTMLElement}
+ */
+export function buildCardRow(item, showDescription = true) {
+  const row = document.createElement('div');
+
+  const image = normalizeIndexImageUrl(item.image);
+  if (image) {
+    const mediaCell = document.createElement('div');
+    const picture = createOptimizedPicture(image, item.title || '', false, [{ width: '750' }]);
+    mediaCell.append(picture);
+    row.append(mediaCell);
+  }
+
+  const bodyCell = document.createElement('div');
+  if (item.title) {
+    const heading = document.createElement('h3');
+    const link = document.createElement('a');
+    link.href = item.path;
+    link.textContent = item.title;
+    heading.append(link);
+    bodyCell.append(heading);
+  }
+  if (showDescription && item.description) {
+    const p = document.createElement('p');
+    p.textContent = item.description;
+    bodyCell.append(p);
+  }
+  row.append(bodyCell);
+
+  return row;
+}
+
+/**
+ * Hydrates all `[data-copy]` elements within a container from a widget copy object.
+ * @param {HTMLElement} container - Root element to search within
+ * @param {Object} copy - Widget copy for the current language
+ */
+export function hydrateCopy(container, copy) {
+  container.querySelectorAll('[data-copy]').forEach((el) => {
+    const value = copy[el.dataset.copy];
+    if (!value) return;
+    const target = el.dataset.copyTarget;
+    if (target) {
+      target.split(',').forEach((attr) => el.setAttribute(attr.trim(), value));
+    } else el.textContent = value;
+  });
 }
 
 /**

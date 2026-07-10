@@ -1,7 +1,7 @@
+import { decorateBlock, loadBlock } from '../../scripts/aem.js';
 import {
-  createOptimizedPicture, decorateBlock, loadBlock,
-} from '../../scripts/aem.js';
-import { normalizeIndexImageUrl, getLocale, loadCopy } from '../../scripts/scripts.js';
+  getLocale, loadCopy, loadIndex, isDirectChild, buildCardRow,
+} from '../../scripts/scripts.js';
 
 const FACETS = [
   { key: 'region', copyKey: 'region' },
@@ -11,21 +11,6 @@ const FACETS = [
   { key: 'axle-load', copyKey: 'axleLoad' },
   { key: 'traction-system', copyKey: 'tractionSystem' },
 ];
-
-function isDirectChild(itemPath, parentPath) {
-  const normalized = parentPath.endsWith('/') ? parentPath.slice(0, -1) : parentPath;
-  if (!itemPath.startsWith(`${normalized}/`)) return false;
-  const rest = itemPath.slice(normalized.length + 1);
-  return rest.length > 0 && !rest.includes('/');
-}
-
-async function loadIndex(lang) {
-  const base = window.hlx?.codeBasePath || '';
-  const resp = await fetch(`${base}/${lang}/query-index.json`);
-  if (!resp.ok) return [];
-  const json = await resp.json();
-  return Array.isArray(json.data) ? json.data : [];
-}
 
 function parseValues(raw) {
   return (raw || '').split(',').map((v) => v.trim()).filter(Boolean);
@@ -52,28 +37,6 @@ function matchesFilters(item, selected) {
     const values = parseValues(item[key]);
     return values.some((v) => active.has(v));
   });
-}
-
-function buildCardRow(item) {
-  const row = document.createElement('div');
-  const image = normalizeIndexImageUrl(item.image);
-  if (image) {
-    const mediaCell = document.createElement('div');
-    const picture = createOptimizedPicture(image, item.title || '', false, [{ width: '750' }]);
-    mediaCell.append(picture);
-    row.append(mediaCell);
-  }
-  const bodyCell = document.createElement('div');
-  if (item.title) {
-    const heading = document.createElement('h3');
-    const link = document.createElement('a');
-    link.href = item.path;
-    link.textContent = item.title;
-    heading.append(link);
-    bodyCell.append(heading);
-  }
-  row.append(bodyCell);
-  return row;
 }
 
 function buildFiltersPanel(panel, counts, selected, onchange, copy) {
@@ -127,7 +90,7 @@ function buildFiltersPanel(panel, counts, selected, onchange, copy) {
 async function renderCards(container, items) {
   const cardsBlock = document.createElement('div');
   cardsBlock.classList.add('cards');
-  items.forEach((item) => cardsBlock.append(buildCardRow(item)));
+  items.forEach((item) => cardsBlock.append(buildCardRow(item, false)));
   const wrapper = document.createElement('div');
   wrapper.append(cardsBlock);
   container.replaceChildren(wrapper);
