@@ -1,5 +1,14 @@
 import { loadCopy } from '../../scripts/scripts.js';
 
+/**
+ * Gets the decoded fragment id a jump-nav link points to.
+ * @param {HTMLAnchorElement} a Jump-nav link
+ * @returns {string} Decoded target id
+ */
+function getId(a) {
+  return decodeURIComponent(new URL(a.href).hash.slice(1));
+}
+
 export default async function decorate(block) {
   const copy = await loadCopy(import.meta.url);
   const ul = block.querySelector('ul');
@@ -20,7 +29,7 @@ export default async function decorate(block) {
   const targets = links
     .map((a) => {
       try {
-        return document.getElementById(new URL(a.href).hash.slice(1));
+        return document.getElementById(getId(a));
       } catch {
         return null;
       }
@@ -35,22 +44,22 @@ export default async function decorate(block) {
   });
   resizeObserver.observe(container);
 
-  const hash = window.location.hash.slice(1);
-  const initial = (hash && links.find((a) => a.href.endsWith(`#${hash}`))) || links[0];
+  const hash = decodeURIComponent(window.location.hash.slice(1));
+  const initial = (hash && links.find((a) => getId(a) === hash)) || links[0];
   if (initial) initial.setAttribute('aria-current', 'location');
 
   const prefersReduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   links.forEach((a) => {
     a.addEventListener('click', (e) => {
-      const id = new URL(a.href).hash.slice(1);
+      const id = getId(a);
       const target = document.getElementById(id);
       if (!target) return;
       e.preventDefault();
       const behavior = prefersReduced() ? 'auto' : 'smooth';
       target.scrollIntoView({ behavior });
       a.scrollIntoView({ behavior, inline: 'center', block: 'nearest' });
-      window.history.pushState(null, '', `#${id}`);
+      window.history.pushState(null, '', `#${encodeURIComponent(id)}`);
     });
   });
 
@@ -65,7 +74,7 @@ export default async function decorate(block) {
       .sort((a, b) => b.px - a.px)[0];
 
     if (!mostVisible) return;
-    const active = links.find((a) => a.href.endsWith(`#${mostVisible.t.id}`));
+    const active = links.find((a) => getId(a) === mostVisible.t.id);
     if (!active) return;
 
     links.forEach((a) => a.removeAttribute('aria-current'));
