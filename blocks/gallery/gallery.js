@@ -42,7 +42,7 @@ function decorateVideo(col, href) {
       container.append(embed);
       observer.disconnect();
     });
-  }, { rootMargin: '0px' });
+  }, { threshold: 1 });
   observer.observe(container);
 }
 
@@ -166,10 +166,14 @@ function updateActiveSlide(slide) {
   block.dataset.activeSlide = slideIndex;
 
   block.querySelectorAll('.slide').forEach((aSlide, i) => {
-    aSlide.setAttribute('aria-hidden', i !== slideIndex);
-    aSlide.querySelectorAll('a').forEach((link) => {
-      if (i !== slideIndex) link.setAttribute('tabindex', '-1');
-      else link.removeAttribute('tabindex');
+    const hidden = i !== slideIndex;
+    aSlide.setAttribute('aria-hidden', hidden);
+    aSlide.querySelectorAll('a[href], iframe').forEach((el) => {
+      if (hidden) el.setAttribute('tabindex', '-1');
+      else el.removeAttribute('tabindex');
+    });
+    aSlide.querySelectorAll('[role="button"]').forEach((el) => {
+      el.setAttribute('tabindex', hidden ? '-1' : '0');
     });
   });
 
@@ -199,7 +203,6 @@ function showSlide(block, slideIndex = 0) {
   const realSlideIndex = Math.max(0, Math.min(slideIndex, slides.length - 1));
   const activeSlide = slides[realSlideIndex];
 
-  activeSlide.querySelectorAll('a').forEach((link) => link.removeAttribute('tabindex'));
   updateActiveSlide(activeSlide);
   block.querySelector('.slides').scrollTo({
     top: 0,
