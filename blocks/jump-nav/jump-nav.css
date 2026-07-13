@@ -103,5 +103,6 @@ div.jump-nav-container {
 @media (width >= 900px) {
   .jump-nav p.button-wrapper {
     order: 0;
+    margin-inline-start: auto;
   }
 }
