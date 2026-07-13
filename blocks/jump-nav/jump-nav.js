@@ -7,10 +7,12 @@ export default async function decorate(block) {
 
   const nav = document.createElement('nav');
   nav.setAttribute('aria-label', copy.pageSections || 'Page Sections');
-  nav.append(ul);
+  if (ul) nav.append(ul);
   if (cta) nav.append(cta);
 
   block.replaceChildren(nav);
+
+  if (!ul) return;
 
   const container = block.closest('.jump-nav-container');
 
