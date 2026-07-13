@@ -449,7 +449,7 @@ header .header-nav .submenu-multi > li > button[aria-expanded='true'] + ul > li 
     top: 100%;
     left: 0;
     right: 0;
-    z-index: 3;
+    z-index: 4;
     height: 240px;
     padding: var(--space-s) 0;
     box-shadow: var(--shadow-default);
@@ -498,7 +498,7 @@ header .header-nav .submenu-multi > li > button[aria-expanded='true'] + ul > li 
     top: 100%;
     left: 0;
     right: 0;
-    z-index: 3;
+    z-index: 4;
     min-height: 240px;
     box-shadow: var(--shadow-default);
     background-color: var(--color-bg);

@@ -282,7 +282,7 @@ main .section:first-child:is(.hero-container) {
   justify-content: space-between;
   position: absolute;
   inset: 0 var(--space-xs);
-  z-index: 2;
+  z-index: 3;
   pointer-events: none;
 }
 
