@@ -1,0 +1,18 @@
+{
+  "en": {
+    "gallery": "Gallery",
+    "gallerySlideControls": "Gallery Slide Controls",
+    "previousSlide": "Previous Slide",
+    "nextSlide": "Next Slide",
+    "showSlide": "Show Slide",
+    "of": "of"
+  },
+  "fr": {
+    "gallery": "Galerie",
+    "gallerySlideControls": "Contrôles de la galerie",
+    "previousSlide": "Diapositive précédente",
+    "nextSlide": "Diapositive suivante",
+    "showSlide": "Afficher la diapositive",
+    "of": "sur"
+  }
+}
