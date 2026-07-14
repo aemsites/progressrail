@@ -3,6 +3,8 @@ import {
   getLocale, loadIndex, isDirectChild, buildCardRow,
 } from '../../scripts/scripts.js';
 
+const SHORT_DESCRIPTION_MAX = 100;
+
 function resolveRoot(rootParam, lang) {
   const pagePath = window.location.pathname;
   if (!rootParam) return pagePath;
@@ -15,10 +17,20 @@ function resolveRoot(rootParam, lang) {
   return pagePath;
 }
 
+function isShortDescription(description) {
+  const text = (description || '').trim();
+  return text.length > 0 && text.length <= SHORT_DESCRIPTION_MAX;
+}
+
+function shouldShowDescriptions(items, descriptionParam) {
+  if (descriptionParam === 'true') return true;
+  if (descriptionParam === 'false') return false;
+  return items.every((item) => isShortDescription(item.description));
+}
+
 export default async function decorate(widget) {
   const lang = getLocale();
   const rootParam = widget.dataset.root;
-  const showDescription = widget.dataset.description !== 'false';
 
   const parentPath = resolveRoot(rootParam, lang);
   const currentPath = window.location.pathname;
@@ -29,6 +41,8 @@ export default async function decorate(widget) {
   });
 
   if (children.length === 0) return;
+
+  const showDescription = shouldShowDescriptions(children, widget.dataset.description);
 
   const cardsBlock = document.createElement('div');
   cardsBlock.classList.add('cards');
