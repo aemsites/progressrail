@@ -26,6 +26,56 @@ function optimizeImages(block) {
 }
 
 /**
+ * Checks whether a loaded image should be shown with `contain` instead of `cover`.
+ * @param {HTMLImageElement} img The loaded image element
+ * @returns {boolean} `true` if the image has any non-opaque pixels or a solid white background
+ */
+function shouldContain(img) {
+  try {
+    const size = 100;
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const context = canvas.getContext('2d');
+    context.drawImage(img, 0, 0, size, size);
+    const { data } = context.getImageData(0, 0, size, size);
+
+    const isWhite = (i) => data[i + 3] === 255
+      && data[i] >= 250 && data[i + 1] >= 250 && data[i + 2] >= 250;
+
+    const corners = [
+      0,
+      (size - 1) * 4,
+      (size - 1) * size * 4,
+      ((size - 1) * size + (size - 1)) * 4,
+    ];
+
+    if (corners.every(isWhite)) return true;
+
+    for (let i = 3; i < data.length; i += 4) {
+      if (data[i] < 255) return true;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Adds a `contain` class to images that should not be cropped.
+ * @param {Element} block The columns block element
+ */
+function detectContainMedia(block) {
+  block.querySelectorAll('.media-wrapper picture > img').forEach((img) => {
+    const check = () => {
+      if (shouldContain(img)) img.classList.add('contain');
+    };
+    if (img.complete) check();
+    else img.addEventListener('load', check, { once: true });
+  });
+}
+
+/**
  * Marks body-only blocks whose last column is links-only with `action` and `action-wrapper`.
  * @param {Element} block The columns block element
  */
@@ -75,4 +125,5 @@ export default function decorate(block) {
   }
 
   optimizeImages(block);
+  detectContainMedia(block);
 }
