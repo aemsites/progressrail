@@ -1,5 +1,4 @@
-import { decorateIcons } from '../../scripts/aem.js';
-import { loadCopy } from '../../scripts/scripts.js';
+import { loadCopy, createYouTubeEmbed, createPlaceholder } from '../../scripts/scripts.js';
 
 /**
  * Returns the video provider name for a supported URL.
@@ -13,25 +12,6 @@ function detectType(url) {
 }
 
 /**
- * Builds a YouTube iframe.
- * @param {string} url - the video page or short URL to parse
- * @param {Object} copy - Localized UI strings
- * @returns {HTMLIFrameElement|null} configured embed iframe
- */
-export function createYouTubeEmbed(url, copy = {}) {
-  const { hostname, pathname, searchParams } = new URL(url);
-  const id = hostname === 'youtu.be' ? pathname.slice(1) : searchParams.get('v');
-  if (!id) return null;
-
-  const iframe = document.createElement('iframe');
-  iframe.src = `https://www.youtube.com/embed/${id}`;
-  iframe.title = copy.youTubeVideo || 'YouTube video';
-  iframe.setAttribute('allowfullscreen', '');
-  iframe.setAttribute('allow', 'autoplay; encrypted-media; picture-in-picture');
-  return iframe;
-}
-
-/**
  * Builds an embed iframe for the given provider type and URL.
  * @param {string} type - provider name returned by detectType
  * @param {string} url - the video URL to embed
@@ -41,42 +21,6 @@ export function createYouTubeEmbed(url, copy = {}) {
 function createEmbed(type, url, copy) {
   if (type === 'youtube') return createYouTubeEmbed(url, copy);
   return null;
-}
-
-/**
- * Builds a thumbnail overlay with a play button.
- * @param {HTMLElement|null} picture - thumbnail image element to display; returns null if absent
- * @param {Function} onPlay - called when the user activates the play control
- * @returns {HTMLElement|null} the placeholder figure
- */
-export function createPlaceholder(picture, onPlay) {
-  if (!picture) return null;
-
-  const figure = document.createElement('figure');
-  figure.classList.add('placeholder');
-  figure.setAttribute('role', 'button');
-  figure.setAttribute('tabindex', '0');
-  figure.append(picture);
-
-  const icon = document.createElement('span');
-  icon.className = 'icon icon-play';
-  figure.append(icon);
-  decorateIcons(figure);
-
-  function play() {
-    onPlay();
-    figure.remove();
-  }
-
-  figure.addEventListener('click', play);
-  figure.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      play();
-    }
-  });
-
-  return figure;
 }
 
 /**

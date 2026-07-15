@@ -578,3 +578,40 @@ main .section.dark button.button.secondary:focus-visible {
     padding: var(--space-l) 0;
   }
 }
+
+/* SHARED VIDEO EMBEDS */
+
+.video-embed {
+  position: relative;
+}
+
+.video-embed iframe {
+  height: 100%;
+  width: 100%;
+  border: none;
+}
+
+.video-embed .placeholder {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.video-embed .placeholder img {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+}
+
+.video-embed .placeholder .icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  height: 80px;
+  width: 80px;
+  color: var(--color-white);
+  filter: drop-shadow(0 1px 5px rgb(0 0 0 / 60%));
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
