@@ -1,50 +1,48 @@
 .tabs .tabs-list {
   display: flex;
+  overflow-x: auto;
   padding: 0;
   background-color: var(--color-bg-light);
-  overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
 
 .tabs .tabs-list button {
-  flex: 1 0 max-content;
+  flex: 1 0 min-content;
   margin: 0;
   border: 0;
   border-bottom: 8px solid var(--color-bg);
   padding: var(--space-m) var(--space-l);
   background-color: var(--color-bg-light);
   font-family: var(--heading-font-family);
-  font-size: var(--text-m);
-  font-weight: 700;
-  text-transform: uppercase;
-  white-space: nowrap;
+  line-height: 1.2;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: box-shadow 0.2s;
 }
 
 .tabs .tabs-list button:hover {
-  background-color: var(--color-border);
-  box-shadow: inset 0 -5px 0 black;
+  box-shadow: inset 0 -5px 0 var(--color-bg-dark);
 }
 
 .tabs .tabs-list button[aria-selected='true'] {
   position: relative;
-  background-color: var(--color-bg);
   box-shadow: inset 0 -5px 0 var(--color-brand);
+  background-color: var(--color-bg);
 }
 
 .tabs .tabs-list button[aria-selected='true']::after {
   content: '';
   position: absolute;
-  bottom: -8px;
   left: 50%;
-  transform: translateX(-50%);
-  border-inline: 8px solid transparent;
+  bottom: -8px;
   border-top: 8px solid var(--color-brand);
+  border-inline: 8px solid transparent;
+  transform: translateX(-50%);
 }
 
-.tabs .tabs-list button p {
-  margin: 0;
+@media (width >= 900px) {
+  .tabs .tabs-list button {
+    flex: 1 1 0;
+  }
 }
 
 .tabs .tabs-panel {
@@ -54,6 +52,30 @@
 
 .tabs .tabs-panel[aria-hidden='true'] {
   display: none;
+}
+
+.tabs .tabs-panel .media-wrapper {
+  position: relative;
+  overflow: hidden;
+  max-width: var(--content-width);
+  margin: auto;
+  aspect-ratio: 16 / 9;
+}
+
+.tabs .tabs-panel .media-wrapper picture {
+  position: absolute;
+  inset: 0;
+}
+
+.tabs .tabs-panel .media-wrapper img {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+}
+
+.tabs .tabs-panel .media-wrapper .video-embed {
+  height: 100%;
+  width: 100%;
 }
 
 @media (width >= 900px) {

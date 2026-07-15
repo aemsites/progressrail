@@ -1,5 +1,25 @@
 // eslint-disable-next-line import/no-unresolved
 import { toClassName } from '../../scripts/aem.js';
+import { transformVideoLinks } from '../../scripts/scripts.js';
+
+/**
+ * Marks a tabpanel's media-only cells (picture, video, or video link) as `media-wrapper`,
+ * matching the columns block's media styling.
+ * @param {Element} tabpanel - The tabpanel whose cells to inspect
+ */
+function decorateMedia(tabpanel) {
+  [...tabpanel.children].forEach((cell) => {
+    transformVideoLinks(cell);
+
+    const els = [...cell.children];
+    const isMedia = els.length > 0 && els.every(
+      (el) => el.tagName === 'PICTURE'
+        || el.tagName === 'VIDEO'
+        || el.classList.contains('video-embed'),
+    );
+    if (isMedia) cell.classList.add('media-wrapper');
+  });
+}
 
 export default async function decorate(block) {
   // build tablist
@@ -41,6 +61,7 @@ export default async function decorate(block) {
     });
     tablist.append(button);
     tab.remove();
+    decorateMedia(tabpanel);
   });
 
   block.prepend(tablist);
