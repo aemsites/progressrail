@@ -154,6 +154,122 @@ export function isYouTubeHref(href) {
 }
 
 /**
+ * Builds a YouTube iframe.
+ * @param {string} url - the video page or short URL to parse
+ * @param {Object} copy - Localized UI strings
+ * @returns {HTMLIFrameElement|null} configured embed iframe
+ */
+export function createYouTubeEmbed(url, copy = {}) {
+  const { hostname, pathname, searchParams } = new URL(url);
+  const id = hostname === 'youtu.be' ? pathname.slice(1) : searchParams.get('v');
+  if (!id) return null;
+
+  const iframe = document.createElement('iframe');
+  iframe.src = `https://www.youtube.com/embed/${id}`;
+  iframe.title = copy.youTubeVideo || 'YouTube video';
+  iframe.setAttribute('allowfullscreen', '');
+  iframe.setAttribute('allow', 'autoplay; encrypted-media; picture-in-picture');
+  return iframe;
+}
+
+/**
+ * Builds a thumbnail overlay with a play button.
+ * @param {HTMLElement|null} picture - thumbnail image element to display; returns null if absent
+ * @param {Function} onPlay - called when the user activates the play control
+ * @returns {HTMLElement|null} the placeholder figure
+ */
+export function createPlaceholder(picture, onPlay) {
+  if (!picture) return null;
+
+  const figure = document.createElement('figure');
+  figure.classList.add('placeholder');
+  figure.setAttribute('role', 'button');
+  figure.setAttribute('tabindex', '0');
+  figure.append(picture);
+
+  const icon = document.createElement('span');
+  icon.className = 'icon icon-play';
+  figure.append(icon);
+  decorateIcons(figure);
+
+  function play() {
+    onPlay();
+    figure.remove();
+  }
+
+  figure.addEventListener('click', play);
+  figure.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      play();
+    }
+  });
+
+  return figure;
+}
+
+/**
+ * Whether el is a paragraph containing a single YouTube link.
+ * @param {Element} el - Element to test
+ * @returns {boolean}
+ */
+export function isVideoLink(el) {
+  if (el.tagName !== 'P' || el.children.length !== 1) return false;
+  const a = el.firstElementChild;
+  return a.tagName === 'A' && isYouTubeHref(a.href);
+}
+
+/**
+ * Transforms a media container with a YouTube link into a video embed.
+ * @param {HTMLElement} container - Container whose children are replaced with the embed
+ * @param {string} href - YouTube URL to embed
+ */
+export function decorateVideo(container, href) {
+  const embed = createYouTubeEmbed(href);
+  if (!embed) return;
+
+  const videoContainer = document.createElement('div');
+  videoContainer.className = 'video-embed';
+
+  const picture = container.querySelector('picture');
+  const placeholder = createPlaceholder(picture, () => {
+    const src = new URL(embed.src);
+    src.searchParams.set('autoplay', 1);
+    embed.src = src.href;
+    if (!embed.isConnected) videoContainer.append(embed);
+  });
+
+  if (placeholder) videoContainer.append(placeholder);
+  container.replaceChildren(videoContainer);
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      videoContainer.append(embed);
+      observer.disconnect();
+    });
+  }, { rootMargin: '0px' });
+  observer.observe(videoContainer);
+}
+
+/**
+ * Finds a video link in a media container and converts it into a video embed.
+ * @param {HTMLElement} container - Container to inspect and potentially transform
+ */
+export function transformVideoLinks(container) {
+  const videoLinkEl = [...container.children].find(isVideoLink);
+  if (videoLinkEl) {
+    const nonVideo = [...container.children].filter((el) => el !== videoLinkEl);
+    const isPictureParagraph = (el) => el.tagName === 'P'
+      && el.children.length === 1
+      && el.firstElementChild.tagName === 'PICTURE';
+    if (nonVideo.every((el) => el.tagName === 'PICTURE' || el.tagName === 'VIDEO' || isPictureParagraph(el))) {
+      decorateVideo(container, videoLinkEl.firstElementChild.href);
+    }
+  }
+}
+
+/**
  * Turns standalone YouTube links into video blocks.
  * @param {Element} main The container element
  */
