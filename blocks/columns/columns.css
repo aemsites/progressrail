@@ -55,6 +55,10 @@
   object-fit: cover;
 }
 
+.columns .media-wrapper img.contain {
+  object-fit: contain;
+}
+
 .columns .media-wrapper > video {
   position: absolute;
   inset: 0;
