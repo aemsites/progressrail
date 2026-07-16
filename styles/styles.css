@@ -492,6 +492,26 @@ main > .section > .default-content-wrapper table {
   }
 }
 
+/* SECTION METADATA */
+
+main .section.center-text .default-content-wrapper > * {
+  text-align: center;
+}
+
+main .section.center-text .default-content-wrapper h1::after,
+main .section.center-text .default-content-wrapper h2::after,
+main .section.center-text .default-content-wrapper h3::after,
+main .section.center-text .default-content-wrapper h4::after,
+main .section.center-text .default-content-wrapper h5::after,
+main .section.center-text .default-content-wrapper h6::after {
+  margin-inline: auto;
+}
+
+main .section.small-image .default-content-wrapper img {
+  width: 100%;
+  max-width: 320px;
+}
+
 main .section.light,
 main .section.dark {
   margin: 0;
@@ -598,6 +618,7 @@ main .section.dark button.button.secondary:focus-visible {
   cursor: pointer;
 }
 
+/* stylelint-disable-next-line no-descending-specificity */
 .video-embed .placeholder img {
   height: 100%;
   width: 100%;
