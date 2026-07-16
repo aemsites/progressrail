@@ -492,6 +492,8 @@ main > .section > .default-content-wrapper table {
   }
 }
 
+/* stylelint-disable no-descending-specificity */
+
 /* SECTION METADATA */
 
 main .section.center-text .default-content-wrapper > * {
@@ -510,6 +512,13 @@ main .section.center-text .default-content-wrapper h6::after {
 main .section.small-image .default-content-wrapper img {
   width: 100%;
   max-width: 320px;
+}
+
+@media (width >= 900px) {
+  main .section.center-text#north .default-content-wrapper h2,
+  main .section.center-text#inter .default-content-wrapper h2 {
+    font-size: 3.375rem;
+  }
 }
 
 main .section.light,
@@ -618,7 +627,6 @@ main .section.dark button.button.secondary:focus-visible {
   cursor: pointer;
 }
 
-/* stylelint-disable-next-line no-descending-specificity */
 .video-embed .placeholder img {
   height: 100%;
   width: 100%;
