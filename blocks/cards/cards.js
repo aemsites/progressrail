@@ -41,7 +41,23 @@ function optimizeImages(block) {
   });
 }
 
+/**
+ * Computes the largest column count in that evenly divides the card count.
+ * @param {number} count Number of cards in the block
+ * @returns {number} Column count that evenly divides count, defaulting to 1
+ */
+function getEvenColCount(count) {
+  return [4, 3, 2, 1].find((n) => count % n === 0) || 1;
+}
+
 export default function decorate(block) {
+  if (block.classList.contains('center')) {
+    const count = block.children.length;
+    if (count > 0 && ![...block.classList].some((c) => c.startsWith('cols-'))) {
+      block.classList.add(`cols-${getEvenColCount(count)}`);
+    }
+  }
+
   const ul = document.createElement('ul');
   [...block.children].forEach((card) => {
     const li = document.createElement('li');
