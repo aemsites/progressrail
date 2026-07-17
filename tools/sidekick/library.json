@@ -5,39 +5,39 @@
   "data": [
     {
       "name": "Accordion",
-      "path": "/tools/sidekick/library/accordion.html?"
+      "path": "/docs/library/accordion"
     },
     {
       "name": "Cards",
-      "path": "/tools/sidekick/library/cards.html?"
+      "path": "/docs/library/cards"
     },
     {
       "name": "Columns",
-      "path": "/tools/sidekick/library/columns.html?"
+      "path": "/docs/library/columns"
     },
     {
       "name": "Gallery",
-      "path": "/tools/sidekick/library/gallery.html?"
+      "path": "/docs/library/gallery"
     },
     {
       "name": "Hero",
-      "path": "/tools/sidekick/library/hero.html?"
+      "path": "/docs/library/hero"
     },
     {
       "name": "Jump Nav",
-      "path": "/tools/sidekick/library/jump-nav.html?"
+      "path": "/docs/library/jump-nav"
     },
     {
       "name": "Table",
-      "path": "/tools/sidekick/library/table.html?"
+      "path": "/docs/library/table"
     },
     {
       "name": "Tabs",
-      "path": "/tools/sidekick/library/tabs.html?"
+      "path": "/docs/library/tabs"
     },
     {
       "name": "Video",
-      "path": "/tools/sidekick/library/video.html?"
+      "path": "/docs/library/video"
     }
   ],
   "columns": [
