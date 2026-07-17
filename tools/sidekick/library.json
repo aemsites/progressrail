@@ -1,1 +1,48 @@
-{"total":9,"offset":0,"limit":9,"data":[{"name":"Accordion","path":"/tools/sidekick/library/accordion"},{"name":"Cards","path":"/tools/sidekick/library/cards"},{"name":"Columns","path":"/tools/sidekick/library/columns"},{"name":"Gallery","path":"/tools/sidekick/library/gallery"},{"name":"Hero","path":"/tools/sidekick/library/hero"},{"name":"Jump Nav","path":"/tools/sidekick/library/jump-nav"},{"name":"Table","path":"/tools/sidekick/library/table"},{"name":"Tabs","path":"/tools/sidekick/library/tabs"},{"name":"Video","path":"/tools/sidekick/library/video"}],"columns":["name","path"],":type":"sheet"}
+{
+  "total": 9,
+  "offset": 0,
+  "limit": 9,
+  "data": [
+    {
+      "name": "Accordion",
+      "path": "/tools/sidekick/library/accordion.html?"
+    },
+    {
+      "name": "Cards",
+      "path": "/tools/sidekick/library/cards.html?"
+    },
+    {
+      "name": "Columns",
+      "path": "/tools/sidekick/library/columns.html?"
+    },
+    {
+      "name": "Gallery",
+      "path": "/tools/sidekick/library/gallery.html?"
+    },
+    {
+      "name": "Hero",
+      "path": "/tools/sidekick/library/hero.html?"
+    },
+    {
+      "name": "Jump Nav",
+      "path": "/tools/sidekick/library/jump-nav.html?"
+    },
+    {
+      "name": "Table",
+      "path": "/tools/sidekick/library/table.html?"
+    },
+    {
+      "name": "Tabs",
+      "path": "/tools/sidekick/library/tabs.html?"
+    },
+    {
+      "name": "Video",
+      "path": "/tools/sidekick/library/video.html?"
+    }
+  ],
+  "columns": [
+    "name",
+    "path"
+  ],
+  ":type": "sheet"
+}

@@ -259,13 +259,13 @@ const libraryEntries = Object.entries(blockConfig)
   .map(([block, cfg]) => ({ name: cfg.title, path: `/tools/sidekick/library/${block}` }))
   .sort((a, b) => a.name.localeCompare(b.name));
 
-fs.writeFileSync(path.join(__dirname, 'library.json'), JSON.stringify({
+fs.writeFileSync(path.join(__dirname, 'library.json'), `${JSON.stringify({
   total: libraryEntries.length,
   offset: 0,
   limit: libraryEntries.length,
   data: libraryEntries,
   columns: ['name', 'path'],
   ':type': 'sheet',
-}));
+}, null, 2)}\n`);
 
 console.log(`Updated library.json with ${libraryEntries.length} blocks`);
