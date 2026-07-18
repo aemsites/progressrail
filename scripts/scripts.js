@@ -324,6 +324,73 @@ function buildAutoBlocks(main) {
 }
 
 /**
+ * Normalizes button markup so strong/em wrap the link as ancestors.
+ * Handles variants like <p><a><strong>text</strong></a></p> and nested combos.
+ * @param {HTMLElement} main The main container element
+ */
+function normalizeButtons(main) {
+  let normalizedCount = 0;
+  main.querySelectorAll('p a[href]').forEach((a) => {
+    const p = a.closest('p');
+    const text = a.textContent.trim();
+    if (!p || a.querySelector('img') || p.textContent.trim() !== text) return;
+
+    const innerStrong = a.querySelector('strong');
+    const innerEm = a.querySelector('em');
+    if (!innerStrong && !innerEm) return;
+
+    const outerStrong = a.closest('strong');
+    const outerEm = a.closest('em');
+    const hasStrong = !!(innerStrong || outerStrong);
+    const hasEm = !!(innerEm || outerEm);
+    if (!hasStrong && !hasEm) return;
+
+    let strongOuter = true;
+    if (hasStrong && hasEm) {
+      if (outerStrong && (outerStrong.contains(outerEm) || innerEm)) {
+        strongOuter = true;
+      } else if (outerEm && (outerEm.contains(outerStrong) || innerStrong)) {
+        strongOuter = false;
+      } else if (innerStrong && innerEm) {
+        if (innerEm.contains(innerStrong)) strongOuter = false;
+      }
+    }
+
+    const normalized = a.cloneNode(false);
+    normalized.textContent = a.textContent.trim();
+
+    let wrapped = normalized;
+    if (hasStrong && hasEm) {
+      const inner = document.createElement(strongOuter ? 'em' : 'strong');
+      const outer = document.createElement(strongOuter ? 'strong' : 'em');
+      inner.append(wrapped);
+      outer.append(inner);
+      wrapped = outer;
+    } else if (hasStrong) {
+      const strong = document.createElement('strong');
+      strong.append(wrapped);
+      wrapped = strong;
+    } else {
+      const em = document.createElement('em');
+      em.append(wrapped);
+      wrapped = em;
+    }
+
+    let target = a;
+    if (outerEm?.contains(a) && (!outerStrong || outerEm.contains(outerStrong))) {
+      target = outerEm;
+    }
+    if (outerStrong?.contains(a) && (!outerEm || outerStrong.contains(outerEm))) {
+      target = outerStrong;
+    }
+    target.replaceWith(wrapped);
+    normalizedCount += 1;
+  });
+  // eslint-disable-next-line no-console
+  console.log(`normalizeButtons: ${normalizedCount} button(s) normalized`);
+}
+
+/**
  * Decorates formatted links to style them as buttons.
  * @param {HTMLElement} main The main container element
  */
@@ -511,6 +578,7 @@ export function decorateMain(main) {
   decorateSections(main);
   decorateBlocks(main);
   decorateIcons(main);
+  normalizeButtons(main);
   decorateButtons(main);
   decorateVideos(main);
 }
