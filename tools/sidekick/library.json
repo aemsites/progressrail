@@ -1,48 +1,49 @@
 {
   "total": 9,
-  "offset": 0,
   "limit": 9,
+  "offset": 0,
   "data": [
     {
       "name": "Accordion",
-      "path": "/docs/library/accordion"
+      "path": "/docs/library/blocks/accordion"
     },
     {
       "name": "Cards",
-      "path": "/docs/library/cards"
+      "path": "/docs/library/blocks/cards"
     },
     {
       "name": "Columns",
-      "path": "/docs/library/columns"
+      "path": "/docs/library/blocks/columns"
     },
     {
       "name": "Gallery",
-      "path": "/docs/library/gallery"
+      "path": "/docs/library/blocks/gallery"
     },
     {
       "name": "Hero",
-      "path": "/docs/library/hero"
+      "path": "/docs/library/blocks/hero"
     },
     {
       "name": "Jump Nav",
-      "path": "/docs/library/jump-nav"
+      "path": "/docs/library/blocks/jump-nav"
     },
     {
       "name": "Table",
-      "path": "/docs/library/table"
+      "path": "/docs/library/blocks/table"
     },
     {
       "name": "Tabs",
-      "path": "/docs/library/tabs"
+      "path": "/docs/library/blocks/tabs"
     },
     {
       "name": "Video",
-      "path": "/docs/library/video"
+      "path": "/docs/library/blocks/video"
     }
   ],
-  "columns": [
-    "name",
-    "path"
+  ":colWidths": [
+    145,
+    521
   ],
+  ":sheetname": "data",
   ":type": "sheet"
 }
