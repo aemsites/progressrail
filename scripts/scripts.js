@@ -329,7 +329,6 @@ function buildAutoBlocks(main) {
  * @param {HTMLElement} main The main container element
  */
 function normalizeButtons(main) {
-  let normalizedCount = 0;
   main.querySelectorAll('p a[href]').forEach((a) => {
     const p = a.closest('p');
     const text = a.textContent.trim();
@@ -384,10 +383,7 @@ function normalizeButtons(main) {
       target = outerStrong;
     }
     target.replaceWith(wrapped);
-    normalizedCount += 1;
   });
-  // eslint-disable-next-line no-console
-  console.log(`normalizeButtons: ${normalizedCount} button(s) normalized`);
 }
 
 /**
