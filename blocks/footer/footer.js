@@ -99,7 +99,10 @@ function decorateCopyright(section) {
     btn.id = 'cookie';
     btn.type = 'button';
     btn.textContent = text;
-    // TODO: wire up OneTrust consent SDK
+    btn.addEventListener('click', async () => {
+      const { default: openCookieSettings } = await import('../../scripts/consent-check.js');
+      await openCookieSettings();
+    });
     li.replaceChildren(btn);
   });
 }

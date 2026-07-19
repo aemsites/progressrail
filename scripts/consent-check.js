@@ -86,4 +86,12 @@ async function initOneTrust() {
   });
 }
 
-initOneTrust();
+const initPromise = initOneTrust();
+
+/**
+ * Opens the OneTrust cookie preference center.
+ */
+export default async function openCookieSettings() {
+  await initPromise;
+  window.OneTrust?.ToggleInfoDisplay?.();
+}
