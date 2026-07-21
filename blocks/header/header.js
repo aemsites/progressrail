@@ -154,7 +154,7 @@ function decorateNav(section) {
   // close all on click outside
   document.addEventListener('click', (e) => {
     if (nav.contains(e.target)) return;
-    nav.querySelectorAll('button[aria-expanded="true"]').forEach((open) => {
+    nav.querySelectorAll(':scope > ul > li > button[aria-expanded="true"]').forEach((open) => {
       open.setAttribute('aria-expanded', false);
     });
     nav.querySelectorAll('[data-active]').forEach((el) => el.removeAttribute('data-active'));
@@ -166,7 +166,7 @@ function decorateNav(section) {
     if (e.key !== 'Escape') return;
     const open = nav.querySelector(':scope > ul > li > button[aria-expanded="true"]');
     if (!open) return;
-    nav.querySelectorAll('button[aria-expanded="true"]').forEach((btn) => {
+    nav.querySelectorAll(':scope > ul > li > button[aria-expanded="true"]').forEach((btn) => {
       btn.setAttribute('aria-expanded', false);
     });
     nav.querySelectorAll('[data-active]').forEach((el) => el.removeAttribute('data-active'));
