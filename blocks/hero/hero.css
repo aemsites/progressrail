@@ -15,7 +15,8 @@ main .section:first-child:is(.hero-container) {
   --hero-height: 350px;
 
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  justify-content: center;
   position: relative;
   overflow: hidden;
   min-height: var(--hero-height);
@@ -27,10 +28,8 @@ main .section:first-child:is(.hero-container) {
 
 .hero > div {
   display: flex;
-  flex: 1;
   flex-direction: column;
-  max-width: var(--site-width);
-  margin: 0 auto;
+  padding-inline: max(0px, calc((100% - var(--site-width)) / 2));
 }
 
 @media (width >= 900px) {
@@ -49,6 +48,12 @@ main .section:first-child:is(.hero-container) {
 
   .hero[data-body="right"]::before {
     background: linear-gradient(to left, rgb(0 0 0 / 85%) 7%, rgb(0 0 0 / 0%) 60%);
+  }
+
+  .hero > div {
+    justify-content: center;
+    position: relative;
+    min-height: var(--hero-height);
   }
 }
 
@@ -152,7 +157,6 @@ main .section:first-child:is(.hero-container) {
   .hero.teaser {
     --hero-height: 325px;
 
-    align-items: center;
     min-height: var(--hero-height);
   }
 

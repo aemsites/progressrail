@@ -233,5 +233,5 @@ export default async function decorate(block) {
     return;
   }
 
-  decorateSlide(rows[0]);
+  rows.forEach(decorateSlide);
 }
