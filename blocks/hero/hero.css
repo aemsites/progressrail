@@ -15,7 +15,8 @@ main .section:first-child:is(.hero-container) {
   --hero-height: 350px;
 
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  justify-content: center;
   position: relative;
   overflow: hidden;
   min-height: var(--hero-height);
@@ -27,10 +28,8 @@ main .section:first-child:is(.hero-container) {
 
 .hero > div {
   display: flex;
-  flex: 1;
   flex-direction: column;
-  max-width: var(--site-width);
-  margin: 0 auto;
+  padding-inline: max(0px, calc((100% - var(--site-width)) / 2));
 }
 
 @media (width >= 900px) {
@@ -49,6 +48,12 @@ main .section:first-child:is(.hero-container) {
 
   .hero[data-body="right"]::before {
     background: linear-gradient(to left, rgb(0 0 0 / 85%) 7%, rgb(0 0 0 / 0%) 60%);
+  }
+
+  .hero > div {
+    justify-content: center;
+    position: relative;
+    min-height: var(--hero-height);
   }
 }
 
@@ -103,28 +108,22 @@ main .section:first-child:is(.hero-container) {
   padding: var(--space-m);
 }
 
-.hero .body-wrapper h1,
-.hero .body-wrapper h2,
-.hero .body-wrapper h3,
-.hero .body-wrapper h4,
-.hero .body-wrapper h5,
-.hero .body-wrapper h6,
+.hero .body-wrapper .title,
 .hero .body-wrapper p {
   color: inherit;
 }
 
-.hero .body-wrapper h1::after,
-.hero .body-wrapper h2::after,
-.hero .body-wrapper h3::after,
-.hero .body-wrapper h4::after,
-.hero .body-wrapper h5::after,
-.hero .body-wrapper h6::after {
+.hero .body-wrapper .title::after {
   content: '';
   display: block;
   height: 5px;
   width: 40px;
   margin-top: var(--space-s);
   background-color: var(--color-brand);
+}
+
+.hero:not(.teaser) .body-wrapper .title {
+  font-size: var(--heading-xl);
 }
 
 @media (width >= 900px) {
@@ -136,7 +135,7 @@ main .section:first-child:is(.hero-container) {
     margin-left: auto;
   }
 
-  .hero .body-wrapper h1 {
+  .hero:not(.teaser) .body-wrapper .title {
     margin-bottom: 0.5em;
     font-size: 3.375rem;
     text-shadow: 0 1px 5px rgb(0 0 0 / 60%);
@@ -158,7 +157,6 @@ main .section:first-child:is(.hero-container) {
   .hero.teaser {
     --hero-height: 325px;
 
-    align-items: center;
     min-height: var(--hero-height);
   }
 

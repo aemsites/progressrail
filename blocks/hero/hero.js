@@ -44,7 +44,10 @@ function decorateSlide(row) {
     mediaCol.className = 'media-wrapper';
     decorateMedia(mediaCol);
   }
-  if (bodyCol) bodyCol.className = 'body-wrapper';
+  if (bodyCol) {
+    bodyCol.className = 'body-wrapper';
+    if (bodyCol.firstElementChild) bodyCol.firstElementChild.classList.add('title');
+  }
   if (mediaCol && cols[0] === mediaCol) row.dataset.body = 'right';
 }
 
@@ -199,9 +202,24 @@ function decorateCarousel(block, rows, copy) {
   bindEvents(block);
 }
 
+/**
+ * Checks whether this hero block is the first item in the page's first section.
+ * @param {HTMLElement} block - Hero block element
+ * @returns {boolean} `true` if block is the first item in the first section
+ */
+function isFirstItemInFirstSection(block) {
+  const main = block.closest('main');
+  const wrapper = block.parentElement;
+  const section = wrapper ? wrapper.parentElement : null;
+  return !!(
+    main
+    && section === main.firstElementChild
+    && wrapper === section.firstElementChild
+  );
+}
+
 export default async function decorate(block) {
-  const heading = block.querySelector('h1, h2, h3, h4, h5, h6');
-  if (!heading || heading.tagName !== 'H1') {
+  if (!isFirstItemInFirstSection(block)) {
     block.classList.add('teaser');
     const heroContainer = block.closest('.hero-container');
     if (heroContainer) heroContainer.classList.add('teaser');
@@ -209,11 +227,15 @@ export default async function decorate(block) {
 
   const rows = [...block.querySelectorAll(':scope > div')];
 
-  if (block.classList.contains('carousel') && rows.length > 1) {
+  if (block.classList.contains('carousel') && rows.length <= 1) {
+    block.classList.remove('carousel');
+  }
+
+  if (block.classList.contains('carousel')) {
     const copy = await loadCopy(import.meta.url);
     decorateCarousel(block, rows, copy);
     return;
   }
 
-  decorateSlide(rows[0]);
+  rows.forEach(decorateSlide);
 }
