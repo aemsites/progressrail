@@ -227,7 +227,11 @@ export default async function decorate(block) {
 
   const rows = [...block.querySelectorAll(':scope > div')];
 
-  if (block.classList.contains('carousel') && rows.length > 1) {
+  if (block.classList.contains('carousel') && rows.length <= 1) {
+    block.classList.remove('carousel');
+  }
+
+  if (block.classList.contains('carousel')) {
     const copy = await loadCopy(import.meta.url);
     decorateCarousel(block, rows, copy);
     return;
